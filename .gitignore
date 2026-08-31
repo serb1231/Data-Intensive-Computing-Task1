@@ -1,0 +1,5 @@
+data
+output_data
+.tmp
+__pycache__
+.idea
