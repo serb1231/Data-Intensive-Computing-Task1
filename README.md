@@ -19,7 +19,9 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    ```bash
    conda activate nyc_taxi_pipeline
     ```
-4. Run the script:
+4. Copy insode the data folder the datasets
+
+5. Run the script:
    ```bash
    python data_ingestion.py
     ```
