@@ -1,0 +1,11 @@
+name: nyc_taxi_pipeline
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - openjdk=17
+  - pyspark=3.5.5
+  - pandas=2.3.3
+  - numpy=1.26.4
+  - pyarrow
+
