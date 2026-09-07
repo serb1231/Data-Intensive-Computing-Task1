@@ -1,8 +1,9 @@
 import json
+import re
 import time
 
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import concat_ws, col, lpad, lit, to_timestamp, md5, year, month
+from pyspark.sql.functions import concat_ws, col, lpad, lit, to_timestamp, md5, year, month, date_trunc, avg
 from schemas import *
 import os
 
@@ -144,7 +145,9 @@ def execute_pipeline(dataset_name: str, raw_df: DataFrame, process_func: callabl
     clean_df = process_func(raw_df)
 
     # save to data lake
-    writer = clean_df.write.format("delta").mode("overwrite")
+    # overwriteSchema: each run fully replaces the table's data (mode="overwrite"),
+    # so its schema should be free to evolve too rather than erroring on mismatch
+    writer = clean_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true")
     if partition_cols:
         writer = writer.partitionBy(*partition_cols)
     writer.save(output_path)
@@ -166,6 +169,64 @@ def execute_pipeline(dataset_name: str, raw_df: DataFrame, process_func: callabl
 
     return clean_df, metadata
 
+# friendly short names for common EPA parameter names; any pollutant not
+# listed here falls back to a normalized slug of its raw name
+AQ_PARAMETER_FRIENDLY_NAMES = {
+    "PM2.5 - Local Conditions": "pm25",
+    "PM10 - Local Conditions": "pm10",
+    "Ozone": "ozone",
+    "Carbon monoxide": "co",
+    "Nitrogen dioxide (NO2)": "no2",
+    "Sulfur dioxide": "so2",
+}
+
+# Task 5
+def build_integrated_trips(trips, weather, air_quality, taxi_zones):
+    # truncate trip pickup to the hour (temporal join key)
+    trips = trips.withColumn("pickup_hour", date_trunc("hour", col("tpep_pickup_datetime")))
+
+    # weather: select only measurements, avoid year/month/day/hour collision
+    weather_sel = weather.select(
+        col("timestamp").alias("weather_hour"),
+        col("temp"), col("rhum"), col("prcp"),
+        col("snwd"), col("wspd"), col("pres"), col("coco")
+    )
+
+    # air quality: collapse to ONE row per hour, pivoted per parameter
+    # (keeps each pollutant in its own units instead of averaging across units)
+    aq_hourly = (air_quality
+        .withColumn("aq_hour", date_trunc("hour", col("timestamp_local")))
+        .groupBy("aq_hour")
+        .pivot("parameter_name")
+        .agg(avg("sample_measurement")))
+
+    # pollutant names become column names dynamically (pivot); use a friendly
+    # short name for known EPA parameters, else fall back to a normalized slug
+    for column in aq_hourly.columns:
+        if column != "aq_hour":
+            col_renamed = AQ_PARAMETER_FRIENDLY_NAMES.get(
+                column, re.sub(r"[^0-9a-z]+", "_", column.strip().lower()).strip("_")
+            )
+            aq_hourly = aq_hourly.withColumnRenamed(column, col_renamed)
+
+    # for zones, join the same lookup twice, aliased for pickup vs dropoff
+    pu_zones = taxi_zones.select(
+        col("locationid").alias("pu_locationid"),
+        col("borough").alias("pickup_borough"),
+        col("zone").alias("pickup_zone"))
+    do_zones = taxi_zones.select(
+        col("locationid").alias("do_locationid"),
+        col("borough").alias("dropoff_borough"),
+        col("zone").alias("dropoff_zone"))
+
+    # all left joins so trips (the primary entity) are never dropped
+    integrated = (trips
+        .join(weather_sel, col("pickup_hour") == col("weather_hour"), "left")
+        .join(aq_hourly,  col("pickup_hour") == col("aq_hour"),      "left")
+        .join(pu_zones,   col("pulocationid") == col("pu_locationid"), "left")
+        .join(do_zones,   col("dolocationid") == col("do_locationid"), "left"))
+
+    return integrated
 
 # turn down the local parallelism in order to not consume all RAM
 spark = SparkSession.builder.appName('Generic_Ingestion_Framework') \
@@ -207,3 +268,20 @@ print(json.dumps({
     "taxi_zones_metadata": tz_meta,
     "trip_data_metadata": trip_meta
 }, indent=4))
+
+# task 5: build and save the integrated table
+integrated_clean, integrated_meta = execute_pipeline(
+    "Integrated Taxi Trips",
+    trip_clean,
+    lambda df: build_integrated_trips(df, weather_clean, air_quality_clean, taxi_zones_clean),
+    "output_data/integrated_taxi_trips",
+    ["year", "month"]
+)
+
+# sanity check: integrated count should equal trip count (left joins, no fan-out)
+print("trips:", trip_clean.count(), "integrated:", integrated_clean.count())
+
+integrated_clean.select(
+    "tpep_pickup_datetime", "temp", "pm25",
+    "pickup_borough", "dropoff_borough"
+).show(10, truncate=False)
