@@ -69,7 +69,16 @@ def weather_data_process(weather_data_raw: DataFrame) -> DataFrame:
 
     return weather_data_raw
 
+# the EPA extract is nationwide; the taxi trips are NYC-only, and joining on
+# local time is only valid within a single timezone, so scope it to the boroughs
+NY_STATE_CODE = "36"
+NYC_COUNTY_CODES = ["005", "047", "081"]  # Bronx, Kings/Brooklyn, Queens (no station in Manhattan or Staten Island)
+
 def air_quality_process(air_quality_raw: DataFrame) -> DataFrame:
+    air_quality_raw = air_quality_raw.filter(
+        (col("state_code") == NY_STATE_CODE) & (col("county_code").isin(NYC_COUNTY_CODES))
+    )
+
     air_quality_raw = air_quality_raw.withColumn("timestamp_local",
                                                    to_timestamp(concat_ws(" ", col("date_local"),
                                                                           concat_ws(":", col("time_local"), lit("00"))),
