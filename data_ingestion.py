@@ -74,11 +74,15 @@ def weather_data_process(weather_data_raw: DataFrame) -> DataFrame:
 NY_STATE_CODE = "36"
 NYC_COUNTY_CODES = ["005", "047", "081"]  # Bronx, Kings/Brooklyn, Queens (no station in Manhattan or Staten Island)
 
-def air_quality_process(air_quality_raw: DataFrame) -> DataFrame:
-    air_quality_raw = air_quality_raw.filter(
+def air_quality_scope(air_quality_raw: DataFrame) -> DataFrame:
+    # scoping, not cleaning: these rows are valid EPA data, they are simply about
+    # other parts of the country. Kept separate from air_quality_process so the
+    # ingestion metadata does not report them as quality rejections.
+    return air_quality_raw.filter(
         (col("state_code") == NY_STATE_CODE) & (col("county_code").isin(NYC_COUNTY_CODES))
     )
 
+def air_quality_process(air_quality_raw: DataFrame) -> DataFrame:
     air_quality_raw = air_quality_raw.withColumn("timestamp_local",
                                                    to_timestamp(concat_ws(" ", col("date_local"),
                                                                           concat_ws(":", col("time_local"), lit("00"))),
@@ -144,11 +148,20 @@ def taxi_zones_data_process(taxi_zones_data_raw: DataFrame) -> DataFrame:
 
 
 def execute_pipeline(dataset_name: str, raw_df: DataFrame, process_func: callable, output_path: str,
-                     partition_cols: list = None) -> tuple:
+                     partition_cols: list = None, scope_func: callable = None) -> tuple:
     # time metadata
     start_time = time.time()
 
-    raw_count = raw_df.count()
+    # scope_func narrows the source to the slice this platform is about (e.g. the
+    # nationwide EPA extract -> NYC boroughs). That is a deliberate narrowing, not a
+    # data-quality failure, so it is counted separately from rejected_records --
+    # otherwise air quality would report ~8.1M "rejections" when nothing failed a check.
+    source_count = raw_df.count()
+    if scope_func:
+        raw_df = scope_func(raw_df)
+        raw_count = raw_df.count()
+    else:
+        raw_count = source_count
 
     # apply processing function to clean the data
     clean_df = process_func(raw_df)
@@ -168,6 +181,8 @@ def execute_pipeline(dataset_name: str, raw_df: DataFrame, process_func: callabl
     metadata = {
         "dataset": dataset_name,
         "schema_version": "1.0",
+        "source_records": source_count,
+        "out_of_scope_records": source_count - raw_count,
         "processed_records": raw_count,
         "rejected_records": raw_count - clean_count,
         "final_clean_records": clean_count,
@@ -260,7 +275,8 @@ weather_clean, weather_meta = execute_pipeline(
 )
 
 air_quality_clean, aq_meta = execute_pipeline(
-    "Air Quality", air_quality_raw, air_quality_process, "output_data/air_quality"
+    "Air Quality", air_quality_raw, air_quality_process, "output_data/air_quality",
+    scope_func=air_quality_scope
 )
 
 taxi_zones_clean, tz_meta = execute_pipeline(
