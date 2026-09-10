@@ -1,13 +1,3 @@
-"""
-Task 6 - Benchmark two storage strategies for the Taxi Trips dataset.
-
-Reads the cleaned Delta tables produced by data_ingestion.py, rewrites the trips
-under two different partitioning schemes, and measures ingestion time, storage
-size, number of generated files, and query latency for the three queries
-required by the assignment.
-
-Run data_ingestion.py first, then:  python benchmark.py
-"""
 import glob
 import json
 import os
