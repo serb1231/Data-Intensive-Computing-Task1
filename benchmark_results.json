@@ -1,0 +1,132 @@
+{
+    "row_count": 8480540,
+    "warmup_runs": 2,
+    "timed_runs": 5,
+    "strategies": {
+        "s1_year_month": {
+            "partition_by": [
+                "year",
+                "month"
+            ],
+            "ingestion_seconds": 12.4,
+            "storage_bytes": 473431324,
+            "storage_mb": 451.5,
+            "generated_files": 14,
+            "partitions": 8,
+            "avg_file_kb": 33023.9,
+            "queries": {
+                "trips_per_borough": {
+                    "cold_seconds": 1.13,
+                    "warm_median_seconds": 0.405,
+                    "warm_min_seconds": 0.357,
+                    "warm_max_seconds": 0.528,
+                    "warm_spread_seconds": 0.171,
+                    "all_runs_seconds": [
+                        1.13,
+                        0.425,
+                        0.528,
+                        0.423,
+                        0.357,
+                        0.373,
+                        0.405
+                    ]
+                },
+                "avg_duration_per_day": {
+                    "cold_seconds": 0.683,
+                    "warm_median_seconds": 0.362,
+                    "warm_min_seconds": 0.335,
+                    "warm_max_seconds": 0.373,
+                    "warm_spread_seconds": 0.039,
+                    "all_runs_seconds": [
+                        0.683,
+                        0.369,
+                        0.373,
+                        0.372,
+                        0.36,
+                        0.335,
+                        0.362
+                    ]
+                },
+                "avg_fare_per_borough": {
+                    "cold_seconds": 0.498,
+                    "warm_median_seconds": 0.364,
+                    "warm_min_seconds": 0.353,
+                    "warm_max_seconds": 0.407,
+                    "warm_spread_seconds": 0.054,
+                    "all_runs_seconds": [
+                        0.498,
+                        0.359,
+                        0.362,
+                        0.379,
+                        0.407,
+                        0.364,
+                        0.353
+                    ]
+                }
+            }
+        },
+        "s2_year_month_day": {
+            "partition_by": [
+                "year",
+                "month",
+                "day"
+            ],
+            "ingestion_seconds": 11.84,
+            "storage_bytes": 470667267,
+            "storage_mb": 448.9,
+            "generated_files": 278,
+            "partitions": 96,
+            "avg_file_kb": 1653.4,
+            "queries": {
+                "trips_per_borough": {
+                    "cold_seconds": 0.799,
+                    "warm_median_seconds": 0.344,
+                    "warm_min_seconds": 0.334,
+                    "warm_max_seconds": 0.36,
+                    "warm_spread_seconds": 0.026,
+                    "all_runs_seconds": [
+                        0.799,
+                        0.411,
+                        0.36,
+                        0.334,
+                        0.339,
+                        0.36,
+                        0.344
+                    ]
+                },
+                "avg_duration_per_day": {
+                    "cold_seconds": 0.406,
+                    "warm_median_seconds": 0.306,
+                    "warm_min_seconds": 0.3,
+                    "warm_max_seconds": 0.324,
+                    "warm_spread_seconds": 0.024,
+                    "all_runs_seconds": [
+                        0.406,
+                        0.304,
+                        0.306,
+                        0.305,
+                        0.324,
+                        0.3,
+                        0.31
+                    ]
+                },
+                "avg_fare_per_borough": {
+                    "cold_seconds": 0.401,
+                    "warm_median_seconds": 0.356,
+                    "warm_min_seconds": 0.328,
+                    "warm_max_seconds": 0.36,
+                    "warm_spread_seconds": 0.032,
+                    "all_runs_seconds": [
+                        0.401,
+                        0.361,
+                        0.353,
+                        0.36,
+                        0.36,
+                        0.356,
+                        0.328
+                    ]
+                }
+            }
+        }
+    }
+}

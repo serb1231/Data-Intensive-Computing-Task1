@@ -64,6 +64,19 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    The first run downloads the Delta Lake jar (`io.delta:delta-spark_2.12:3.1.0`) from Maven
    Central, so it needs network access. Later runs reuse the cached jar in `~/.ivy2`.
 
+   This writes the Delta tables into `output_data/` and takes roughly 3 minutes.
+
+7. Optionally run the Task 6 benchmark, which requires step 6 to have completed:
+
+   ```bash
+   python benchmark.py
+   ```
+
+   It rewrites the trips table under two partitioning schemes into `benchmark_output/`
+   (~930 MB, git-ignored), measures ingestion time, storage size, file count and query
+   latency, prints a summary, and writes raw measurements to `benchmark_results.json`.
+   Takes about 1 minute. Results and discussion are in `Benchmark Report.md`.
+
 ## 3. Apple Silicon (macOS arm64) notes
 
 Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.yml`:

@@ -109,7 +109,7 @@ The `taxi_zones` and `air_quality` datasets should not be partitioned. `taxi_zon
 - **`air_quality`** and **`taxi_zones`** are left unpartitioned (see above).
 
 **Under what conditions does partitioning become harmful?**
-Partitioning becomes harmful when there are too many unique values in the partition column. There must be a balance between the number of folders generated and the amount of data inside each folder.
+Partitioning becomes harmful when there are too many unique values in the partition column. There must be a balance between the number of folders generated and the amount of data inside each folder. Task 6 measures this directly (see `Benchmark Report.md`): the deciding factor is not the partition count but the resulting file size. Partitioning `trip_data` by day yields 278 files of 1.65 MB and is still slightly faster than monthly partitioning, whereas the same `year, month, day` scheme applied to `weather` yields 366 files averaging 13 KB for 4.8 MB of data — a table where per-file overhead dominates and the partitioning should be coarsened. Partitioning is also useless, though not actively harmful, when the workload never filters on the partition column: none of the three benchmark queries does, so neither scheme prunes a single file.
 
 **If the total data volume increased by 20×, what changes would you make to your storage design?**
 Make the partitioning strategy more in depth
