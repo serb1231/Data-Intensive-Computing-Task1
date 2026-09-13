@@ -7,7 +7,7 @@ This repository contains a PySpark-based data ingestion and integration pipeline
 To run this pipeline, you must have the following installed on your machine:
 
 - **Conda** (Miniconda, Anaconda, or Miniforge)
-- **Java 17** — you do *not* need to install this separately. Both environment files pin
+- **Java 17** — you do _not_ need to install this separately. Both environment files pin
   `openjdk=17`, so Conda provides the JVM inside the environment and points `JAVA_HOME` at
   it on activation. Spark 3.5 does not support Java 21+, so letting Conda own the JVM also
   protects you from a newer system-wide JDK on your `PATH`.
@@ -37,14 +37,14 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
 
 4. Copy the datasets into the `data/` folder. The pipeline expects these exact filenames:
 
-   | File | Notes |
-   | --- | --- |
-   | `data/weather.csv` | |
-   | `data/air_quality.csv` | Ships as `air_quality.zip`; see step 5 |
-   | `data/taxi_zone_lookup.csv` | |
-   | `data/yellow_tripdata_2024-01.parquet` | |
-   | `data/yellow_tripdata_2024-02.parquet` | |
-   | `data/yellow_tripdata_2024-03.parquet` | |
+   | File                                   | Notes                                  |
+   | -------------------------------------- | -------------------------------------- |
+   | `data/weather.csv`                     |                                        |
+   | `data/air_quality.csv`                 | Ships as `air_quality.zip`; see step 5 |
+   | `data/taxi_zone_lookup.csv`            |                                        |
+   | `data/yellow_tripdata_2024-01.parquet` |                                        |
+   | `data/yellow_tripdata_2024-02.parquet` |                                        |
+   | `data/yellow_tripdata_2024-03.parquet` |                                        |
 
 5. Unzip the air-quality archive and rename it. The archive contains
    `hourly_88101_2024.csv`, but the pipeline reads `data/air_quality.csv`:
