@@ -77,6 +77,19 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    latency, prints a summary, and writes raw measurements to `benchmark_results.json`.
    Takes about 1 minute. Results and discussion are in `Benchmark Report.md`.
 
+8. Run the Week 2 analytical query library, which also requires step 6 to have completed:
+
+   ```bash
+   python analytical_queries.py
+   ```
+
+   It runs all six analytical queries from `Week2 Design Report.md` (Task 1) as Spark SQL
+   against `output_data/integrated_taxi_trips`, plus the underlying-table variants of
+   queries 1 and 6 against `trip_data`/`taxi_zones`, and prints every result set. The
+   query functions are also importable (`from analytical_queries import QUERIES,
+   run_all_queries`) for reuse by the optimization experiments and data products in later
+   tasks.
+
 ## 3. Apple Silicon (macOS arm64) notes
 
 Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.yml`:
