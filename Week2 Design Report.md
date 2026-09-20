@@ -189,6 +189,68 @@ This mapping is what Task 3's optimization experiments will exercise: queries 1,
 
 ---
 
+## Task 3. Optimize Query Performance
+For this task we decided to use certain optimizations on certain queries. 
+### Caching frequently accessed tables or intermediate results:
+For this one, the solution seemed preety straight forward:
+1.     spark.catalog.clearCache() and then run the query
+2. run this then run query
+    spark.catalog.cacheTable("trip_data")
+    spark.catalog.cacheTable("taxi_zones")
+But the times were: 6 seconds, 1 second (the the 2 runs with no cache optimization), then 11 seconds for the run with 
+the optimized cache. It seemed that through sparks lazy functionality, the time function also timed the bringing into
+cache of the table.
+Upon a second run of the optimized query, we managed to get the expected result:  0.58 seconds! WOW!
+
+### Partition Pruning
+In Week 1 we decided to partition trip_data by the year and month given that there were large quantities of data.
+This is helping this week. It is dependent on the queries
+SELECT COUNT(*) FROM trip_data WHERE tpep_pickup_datetime >= '2024-01-01' AND tpep_pickup_datetime < '2024-02-01'
+SELECT COUNT(*) FROM trip_data WHERE year = 2024 AND month = 1
+Fir the first query, the tpep_pickup_datetime was not partitioned, hence we needed to bring everything in the RAM (4.3 seconds)
+For the second query, we could bring directly into the ram the folder that contained the data for that month (1 second)
+
+The proof is: "PartitionFilters: [isnotnull(year#159), isnotnull(month#160), (year#159 = 2024), (month#160 = 1)]"
+
+It means that it used the partition pruning
+
+### Broadcast joins when joining the large Taxi Trips table with the small Weather, Air Quality, or Taxi Zone Lookup tables.
+Broadcasting join just means that in the case of a join between a big table and a small table, spark has the tendency to
+send the small table to every worker and fraction the big table in order to do everything in parallel. So we needed to
+deactivate the automatic broadcasting before the first run:
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "-1")
+And activate it back up afterwards:
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "10485760")
+The times are: 2.42 and 0.91
+Another thing to keep in mind is that, if we are running the query from the same dataframe, spark caches the result (so
+create a new dataframe from the same query).
+Also, the query:
+        SELECT t.year, t.month, z.zone AS pickup_zone, z.borough AS pickup_borough,
+               COUNT(*) AS trip_count,
+               AVG(t.fare_amount) AS avg_fare   
+        FROM trip_data t
+        LEFT JOIN taxi_zones z ON t.pulocationid = z.locationid
+        GROUP BY t.year, t.month, z.zone, z.borough
+        ORDER BY t.year, t.month, trip_count DESC
+
+### AQE
+This means that spark just pauses during it's execution in order to rething it's tactic.
+For example, in our query
+SELECT t.year, z.borough, COUNT(*) AS expensive_trips
+        FROM trip_data t
+        JOIN taxi_zones z ON t.pulocationid = z.locationid
+        WHERE t.fare_amount > 100 
+        GROUP BY t.year, z.borough
+
+Instead of directly doing a join on the full tables trip_data and taxi_zones (which would be expensive), it first
+looks at the "Where t.fare_amount > 100" in order to very much trim down the trip_data. 
+This improves the execution time: 2 seconds -> 0.5 seconds
+
+### Verification of Data
+The results were compared after the execution:
+def verify_optimization(baseline_data, optimized_data):
+    assert(baseline_data == optimized_data)
+
 ## Task 4. Reusable Analytical Data Products
 
 ### What was built

@@ -90,7 +90,23 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    run_all_queries`) for reuse by the optimization experiments and data products in later
    tasks.
 
-9. Generate the Week 2 reusable analytical data products (Task 4), which also requires
+9. Run the Week 2 optimization benchmark!
+
+   ```bash
+   python optimization_analytical_queries_comparrison.py
+   ```
+   
+   It runs the optimizations described in the test:
+- Caching frequently accessed tables or intermediate results.
+- Partition pruning by designing queries that read only the required partitions.
+- Broadcast joins when joining the large Taxi Trips table with the small Weather, Air Quality, or Taxi Zone Lookup tables.
+- Adaptive Query Execution (AQE) by comparing query performance with AQE enabled and disabled.
+
+
+
+
+
+10. Generate the Week 2 reusable analytical data products (Task 4), which also requires
    step 6 to have completed:
 
    ```bash
