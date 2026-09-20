@@ -90,6 +90,38 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    run_all_queries`) for reuse by the optimization experiments and data products in later
    tasks.
 
+9. Generate the Week 2 reusable analytical data products (Task 4), which also requires
+   step 6 to have completed:
+
+   ```bash
+   python data_products.py
+   ```
+
+   It builds five Delta tables under `output_data/data_products/` — `daily_mobility_summary`,
+   `taxi_zone_statistics`, `weather_impact_summary`, `air_quality_impact_summary` and
+   `borough_mobility_summary` — appends one row per refresh to the `_registry` Delta table
+   next to them, and then re-answers analytical queries 2, 4 and 5 straight from the products
+   to show they replace the ad-hoc SQL. The whole run takes about 80 seconds, most of it the
+   single cached scan of the integrated table; the five aggregations on top take ~8 seconds
+   and produce ~171 KB in total. The design rationale for each product is in
+   `Week2 Design Report.md` (Task 4); storage overhead, build times and the on-demand versus
+   materialized comparison are in `Week2 Benchmark Report.md`.
+
+   Useful variants:
+
+   ```bash
+   python data_products.py --product weather_impact_summary  # refresh a single product
+   python data_products.py --month 2024-03                   # rebuild only March in the daily summary
+   python data_products.py --no-cache                        # skip CACHE TABLE, to measure what caching is worth
+   ```
+
+   To inspect a product's lineage afterwards, every refresh also writes its metadata into the
+   Delta commit itself:
+
+   ```sql
+   DESCRIBE HISTORY delta.`/absolute/path/output_data/data_products/daily_mobility_summary`
+   ```
+
 ## 3. Apple Silicon (macOS arm64) notes
 
 Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.yml`:
