@@ -74,8 +74,8 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
 
    It rewrites the trips table under two partitioning schemes into `benchmark_output/`
    (~930 MB, git-ignored), measures ingestion time, storage size, file count and query
-   latency, prints a summary, and writes raw measurements to `benchmark_results.json`.
-   Takes about 1 minute. Results and discussion are in `Benchmark Report.md`.
+   latency, prints a summary, and writes raw measurements to `benchmark_results_week_1.json`.
+   Takes about 1 minute. Results and discussion are in `Benchmark Report Week 1.md`.
 
 8. Run the Week 2 analytical query library, which also requires step 6 to have completed:
 
@@ -83,7 +83,7 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    python analytical_queries.py
    ```
 
-   It runs all six analytical queries from `Week2 Design Report.md` (Task 1) as Spark SQL
+   It runs all six analytical queries from `Design Report Week 2.md` (Task 1) as Spark SQL
    against `output_data/integrated_taxi_trips`, plus the underlying-table variants of
    queries 1 and 6 against `trip_data`/`taxi_zones`, and prints every result set. The
    query functions are also importable (`from analytical_queries import QUERIES,
@@ -93,7 +93,7 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
 9. Run the Week 2 optimization benchmark!
 
    ```bash
-   python optimization_analytical_queries_comparrison.py
+   python query_optimization_techniques.py
    ```
    
    It runs the optimizations described in the test:
@@ -120,7 +120,7 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    to show they replace the ad-hoc SQL. The whole run takes about 80 seconds, most of it the
    single cached scan of the integrated table; the five aggregations on top take ~8 seconds
    and produce ~171 KB in total. The design rationale for each product is in
-   `Week2 Design Report.md` (Task 4); storage overhead, build times and the on-demand versus
+   `Design Report Week 2.md` (Task 4); storage overhead, build times and the on-demand versus
    materialized comparison are in `Week2 Benchmark Report.md`.
 
    Useful variants:

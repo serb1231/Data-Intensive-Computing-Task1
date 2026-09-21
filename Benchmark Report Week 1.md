@@ -1,7 +1,7 @@
 # Benchmark Report — Task 6
 
 Scalability evaluation of two storage strategies for the Taxi Trips dataset.
-Produced by `benchmark.py`; raw measurements are in `benchmark_results.json`.
+Produced by `benchmark.py`; raw measurements are in `benchmark_results_week_1.json`.
 
 ## 1. Storage strategies evaluated
 

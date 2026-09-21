@@ -14,7 +14,7 @@ TAXI_ZONES_PATH = "output_data/taxi_zones"
 
 # Meteostat `coco` condition code -> broad category. Defined once here and reused
 # by every query that needs a human-readable weather bucket (see "Week2 Design
-# Report.md", Task 1) instead of repeating the CASE WHEN in each query.
+# report_week_1.md", Task 1) instead of repeating the CASE WHEN in each query.
 WEATHER_CATEGORY_SQL = """CASE WHEN coco IN (1, 2, 3) THEN 'Clear/Fair'
          WHEN coco IN (4, 5) THEN 'Cloudy/Overcast'
          WHEN coco IN (6, 7) THEN 'Fog'

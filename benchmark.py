@@ -17,7 +17,7 @@ from pyspark.sql.functions import col, avg, count, to_date, unix_timestamp, dayo
 SOURCE_TRIPS = "output_data/trip_data"
 SOURCE_ZONES = "output_data/taxi_zones"
 BENCH_ROOT = "benchmark_output"
-RESULTS_FILE = "benchmark_results.json"
+RESULTS_FILE = "benchmark_results_week_1.json"
 
 # the first execution pays JIT and metadata-cache costs, so it is reported
 # separately as the cold run rather than averaged into the steady-state figure.
