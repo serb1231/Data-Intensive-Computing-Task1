@@ -54,7 +54,8 @@ StructField("pres_source", StringType(), True),
 StructField("cldc", IntegerType(), True), # cloud cover (code/percent)
 StructField("cldc_source", StringType(), True),
 StructField("coco", IntegerType(), True), # weather condition code
-StructField("coco_source", StringType(), True)
+StructField("coco_source", StringType(), True),
+StructField("humidity", IntegerType(), True)
 ])
 
 air_quality_schema = StructType([
@@ -81,5 +82,6 @@ StructField("Method Code", StringType(), True), # kept as string to be safe (cod
 StructField("Method Name", StringType(), True),
 StructField("State Name", StringType(), True),
 StructField("County Name", StringType(), True),
-StructField("Date of Last Change", DateType(), True)
+StructField("Date of Last Change", DateType(), True),
+StructField("aqi", IntegerType(), True)
 ])

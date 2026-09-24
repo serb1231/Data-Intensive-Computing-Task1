@@ -138,6 +138,19 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    DESCRIBE HISTORY delta.`/absolute/path/output_data/data_products/daily_mobility_summary`
    ```
 
+11. Run  simulate_new_data.py
+   This script  creaes new data for the air quality, taxi trips, weather tables. The new data will be created inside the `continuous_data` directory.
+
+   ```bash
+   python simulate_new_data.py
+   ```
+
+12. Run the continuous_data_insert.py
+   This script will integrate the newly generated data inside the existing datalake.
+   ```bash
+   python continuous_data_insert.py
+   ```
+
 ## 3. Apple Silicon (macOS arm64) notes
 
 Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.yml`:

@@ -1,11 +1,5 @@
 import os
 
-os.environ["PYSPARK_SUBMIT_ARGS"] = (
-    "--driver-memory 4g "
-    "--packages io.delta:delta-spark_2.12:3.1.0 "
-    "pyspark-shell"
-)
-
 from pyspark.sql import SparkSession, DataFrame
 
 INTEGRATED_PATH = "output_data/integrated_taxi_trips"

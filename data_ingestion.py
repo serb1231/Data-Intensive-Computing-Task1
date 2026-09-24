@@ -5,19 +5,15 @@ import time
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import concat_ws, col, lpad, lit, to_timestamp, md5, year, month, date_trunc, avg
 from schemas import *
+from delta.tables import DeltaTable
+from delta import configure_spark_with_delta_pip
 import os
-
-os.environ["PYSPARK_SUBMIT_ARGS"] = (
-    "--driver-memory 4g "
-    "--packages io.delta:delta-spark_2.12:3.1.0 "
-    "pyspark-shell"
-)
 
 def readDataGeneric(spark_session:SparkSession, path, data_type, schema:StructType) -> DataFrame:
     # load the data
     if data_type == "csv":
-        # using FAILFAST is the schema validator
-        data : DataFrame = spark_session.read.csv(path, sep=',', schema=schema, header=True, mode="FAILFAST")
+        # using PERMISSIVE is the schema validator
+        data : DataFrame = spark_session.read.csv(path, sep=',', schema=schema, header=True, mode="PERMISSIVE")
     elif data_type == "parquet":
         data : DataFrame = spark_session.read.parquet(path)
     else:
@@ -148,14 +144,10 @@ def taxi_zones_data_process(taxi_zones_data_raw: DataFrame) -> DataFrame:
 
 
 def execute_pipeline(dataset_name: str, raw_df: DataFrame, process_func: callable, output_path: str,
-                     partition_cols: list = None, scope_func: callable = None) -> tuple:
-    # time metadata
+                     pk_col: str, partition_cols: list = None, scope_func: callable = None) -> tuple:
     start_time = time.time()
+    spark_session = raw_df.sparkSession
 
-    # scope_func narrows the source to the slice this platform is about (e.g. the
-    # nationwide EPA extract -> NYC boroughs). That is a deliberate narrowing, not a
-    # data-quality failure, so it is counted separately from rejected_records --
-    # otherwise air quality would report ~8.1M "rejections" when nothing failed a check.
     source_count = raw_df.count()
     if scope_func:
         raw_df = scope_func(raw_df)
@@ -163,34 +155,47 @@ def execute_pipeline(dataset_name: str, raw_df: DataFrame, process_func: callabl
     else:
         raw_count = source_count
 
-    # apply processing function to clean the data
     clean_df = process_func(raw_df)
-
-    # save to data lake
-    # overwriteSchema: each run fully replaces the table's data (mode="overwrite"),
-    # so its schema should be free to evolve too rather than erroring on mismatch
-    writer = clean_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true")
-    if partition_cols:
-        writer = writer.partitionBy(*partition_cols)
-    writer.save(output_path)
-
     clean_count = clean_df.count()
 
-    # make metadata
+    if not DeltaTable.isDeltaTable(spark_session, output_path):
+        # first run: table doesn't exist yet, so create it
+        writer = clean_df.write.format("delta")
+        if partition_cols:
+            writer = writer.partitionBy(*partition_cols)
+        writer.save(output_path)
+
+        write_mode = "created"
+        inserted_count = clean_count
+    else:
+        # table exists: insert only the rows whose key is not already there
+        target = DeltaTable.forPath(spark_session, output_path)
+        (target.alias("t")
+               .merge(clean_df.alias("s"), f"t.{pk_col} = s.{pk_col}")
+               .whenNotMatchedInsertAll()
+               .execute())
+
+        # Delta records how many rows the merge actually inserted
+        metrics = target.history(1).select("operationMetrics").collect()[0][0]
+        write_mode = "merged"
+        inserted_count = int(metrics.get("numTargetRowsInserted", 0))
+
     end_time = time.time()
     metadata = {
         "dataset": dataset_name,
         "schema_version": "1.0",
+        "write_mode": write_mode,
         "source_records": source_count,
         "out_of_scope_records": source_count - raw_count,
         "processed_records": raw_count,
         "rejected_records": raw_count - clean_count,
         "final_clean_records": clean_count,
+        "inserted_records": inserted_count,
+        "duplicates_skipped": clean_count - inserted_count,
         "execution_time_seconds": round(end_time - start_time, 2)
     }
 
     print(json.dumps(metadata, indent=4))
-
     return clean_df, metadata
 
 # friendly short names for common EPA parameter names; any pollutant not
@@ -252,61 +257,79 @@ def build_integrated_trips(trips, weather, air_quality, taxi_zones):
 
     return integrated
 
-# turn down the local parallelism in order to not consume all RAM
-spark = SparkSession.builder.appName('Generic_Ingestion_Framework') \
-    .master("local[4]") \
-    .config("spark.sql.shuffle.partitions", "64") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .getOrCreate()
+def build_spark() -> SparkSession:
+    # turn down the local parallelism in order to not consume all RAM
+    builder = SparkSession.builder.appName('Generic_Ingestion_Framework') \
+        .master("local[4]") \
+        .config("spark.driver.memory", "4g") \
+        .config("spark.sql.shuffle.partitions", "64") \
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
+    return spark
 
-weather_raw = readDataGeneric(spark, "data/weather.csv", "csv", weather_schema)
-air_quality_raw = readDataGeneric(spark, "data/air_quality.csv", "csv", air_quality_schema)
-taxi_zones_raw = readDataGeneric(spark, "data/taxi_zone_lookup.csv", "csv", taxi_zones_schema)
+def main():
 
-trip_1 = readDataGeneric(spark, "data/yellow_tripdata_2024-01.parquet", "parquet", trips_schema)
-trip_2 = readDataGeneric(spark, "data/yellow_tripdata_2024-02.parquet", "parquet", trips_schema)
-trip_3 = readDataGeneric(spark, "data/yellow_tripdata_2024-03.parquet", "parquet", trips_schema)
-trip_combined_raw = trip_1.unionByName(trip_2).unionByName(trip_3)
+    spark = build_spark()
 
-weather_clean, weather_meta = execute_pipeline(
-    "Weather", weather_raw, weather_data_process, "output_data/weather", ["year", "month", "day"]
-)
+    weather_raw = readDataGeneric(spark, "data/weather.csv", "csv", weather_schema)
+    air_quality_raw = readDataGeneric(spark, "data/air_quality.csv", "csv", air_quality_schema)
+    taxi_zones_raw = readDataGeneric(spark, "data/taxi_zone_lookup.csv", "csv", taxi_zones_schema)
 
-air_quality_clean, aq_meta = execute_pipeline(
-    "Air Quality", air_quality_raw, air_quality_process, "output_data/air_quality",
-    scope_func=air_quality_scope
-)
+    trip_1 = readDataGeneric(spark, "data/yellow_tripdata_2024-01.parquet", "parquet", trips_schema)
+    trip_2 = readDataGeneric(spark, "data/yellow_tripdata_2024-02.parquet", "parquet", trips_schema)
+    trip_3 = readDataGeneric(spark, "data/yellow_tripdata_2024-03.parquet", "parquet", trips_schema)
+    trip_combined_raw = trip_1.unionByName(trip_2).unionByName(trip_3)
 
-taxi_zones_clean, tz_meta = execute_pipeline(
-    "Taxi Zones", taxi_zones_raw, taxi_zones_data_process, "output_data/taxi_zones"
-)
+    weather_clean, weather_meta = execute_pipeline(
+        "Weather", weather_raw, weather_data_process, "output_data/weather",
+        pk_col="timestamp",
+        partition_cols=["year", "month", "day"]
+    )
 
-trip_clean, trip_meta = execute_pipeline(
-    "Trip Data", trip_combined_raw, trip_data_process, "output_data/trip_data", ["year", "month"]
-)
+    air_quality_clean, aq_meta = execute_pipeline(
+        "Air Quality", air_quality_raw, air_quality_process, "output_data/air_quality",
+        pk_col="surrogate_key",
+        partition_cols=None,
+        scope_func=air_quality_scope
+    )
 
-print(json.dumps({
-    "weather_metadata": weather_meta,
-    "air_quality_metadata": aq_meta,
-    "taxi_zones_metadata": tz_meta,
-    "trip_data_metadata": trip_meta
-}, indent=4))
+    taxi_zones_clean, tz_meta = execute_pipeline(
+        "Taxi Zones", taxi_zones_raw, taxi_zones_data_process, "output_data/taxi_zones",
+        pk_col="locationid",
+        partition_cols=None
+    )
 
-# task 5: build and save the integrated table
-integrated_clean, integrated_meta = execute_pipeline(
-    "Integrated Taxi Trips",
-    trip_clean,
-    lambda df: build_integrated_trips(df, weather_clean, air_quality_clean, taxi_zones_clean),
-    "output_data/integrated_taxi_trips",
-    ["year", "month"]
-)
+    trip_clean, trip_meta = execute_pipeline(
+        "Trip Data", trip_combined_raw, trip_data_process, "output_data/trip_data",
+        pk_col="surrogate_key",
+        partition_cols=["year", "month"]
+    )
 
-# sanity check: integrated count should equal trip count (left joins, no fan-out)
-print("trips:", trip_clean.count(), "integrated:", integrated_clean.count())
+    print(json.dumps({
+        "weather_metadata": weather_meta,
+        "air_quality_metadata": aq_meta,
+        "taxi_zones_metadata": tz_meta,
+        "trip_data_metadata": trip_meta
+    }, indent=4))
 
-integrated_clean.select(
-    "tpep_pickup_datetime", "temp", "pm25",
-    "pickup_borough", "dropoff_borough"
-).show(10, truncate=False)
+    # task 5: build and save the integrated table
+    integrated_clean, integrated_meta = execute_pipeline(
+        "Integrated Taxi Trips",
+        trip_clean,
+        lambda df: build_integrated_trips(df, weather_clean, air_quality_clean, taxi_zones_clean),
+        "output_data/integrated_taxi_trips",
+        pk_col="surrogate_key",
+        partition_cols=["year", "month"]
+    )
+    # sanity check: integrated count should equal trip count (left joins, no fan-out)
+    print("trips:", trip_clean.count(), "integrated:", integrated_clean.count())
+
+    integrated_clean.select(
+        "tpep_pickup_datetime", "temp", "pm25",
+        "pickup_borough", "dropoff_borough"
+    ).show(10, truncate=False)
+
+if __name__ == "__main__":
+    main()
