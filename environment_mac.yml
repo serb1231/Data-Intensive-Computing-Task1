@@ -8,4 +8,8 @@ dependencies:
   - pandas=2.3.3
   - numpy=1.26.4
   - pyarrow
+  - pip
+  - pip:
+      - delta-spark==3.1.0  # matches the io.delta:delta-spark_2.12:3.1.0 jar; imported by data_ingestion.py
+      - pytest              # tests/ (python -m pytest tests)
 

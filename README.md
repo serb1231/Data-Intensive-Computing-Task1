@@ -151,6 +151,60 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    python continuous_data_insert.py
    ```
 
+   Every batch, initial or incremental, now goes through the Week 3 validation framework
+   (`validation.py`, rules in `validation_rules.py`) and is recorded by the monitoring component
+   (`monitoring.py`). Nothing has to be called explicitly: `execute_pipeline` does both.
+
+   **Schema evolution** is handled per batch. CSV columns are bound by header name, so a new,
+   missing or reordered column cannot shift values into the wrong column. A new column that is
+   declared in `schemas.py` (such as `humidity` or `aqi`) is added to the Delta table
+   automatically. An undeclared column is dropped and reported. A missing required column, or
+   a type that cannot be cast, rejects the batch without writing anything. To accept a new
+   column, declare it in `schemas.py` and re-run the load.
+
+13. Print the monitoring report (Week 3, Task 3). It answers the operational questions with
+   Spark SQL over `output_data/monitoring/pipeline_runs` and
+   `output_data/monitoring/validation_results`:
+
+   ```bash
+   python monitoring.py                          # every query
+   python monitoring.py --query slowest_datasets # one of: failing_datasets, failing_rules,
+                                                 # slowest_datasets, rejections_per_execution,
+                                                 # processing_time_trend, schema_history, latest_status
+   ```
+
+14. Print the validation report (Week 3, Task 4): the latest outcome of every rule per dataset,
+   validation statistics per category, and the contents of the quarantine tables under
+   `output_data/quarantine/`:
+
+   ```bash
+   python validation.py --samples 5
+   ```
+
+   Rejected records keep their own columns plus `_rejection_reasons`, `_malformed_values`
+   (the raw text of any value that could not be read as its declared type) and the
+   `_run_id`/`_execution_id` of the load that rejected them, so they can be queried directly:
+
+   ```sql
+   SELECT _rejection_reasons, COUNT(*) FROM delta.`/absolute/path/output_data/quarantine/trip_data`
+   GROUP BY _rejection_reasons ORDER BY 2 DESC
+   ```
+
+   To add a validation rule, append it to the dataset's list in `validation_rules.py` (see the
+   docstring there). The engine in `validation.py` does not change.
+
+15. Run the fault-injection tests (about 40 seconds). They push small batches with known
+   problems through the real pipeline in a temporary directory and check that every problem is
+   detected, quarantined and recorded:
+
+   ```bash
+   python -m pytest tests
+   ```
+
+   For the Task 5 overhead measurements, two switches run the same pipeline without a component:
+   `PLATFORM_VALIDATION=off` (no record-level rules) and `PLATFORM_MONITORING=off` (no
+   monitoring writes), e.g. `PLATFORM_MONITORING=off python continuous_data_insert.py`.
+
 ## 3. Apple Silicon (macOS arm64) notes
 
 Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.yml`:
@@ -175,3 +229,8 @@ Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.
   `pd.read_parquet(..., engine='fastparquet')`, but `fastparquet` is in neither environment
   file. Either add it or switch the engine to `pyarrow`. It also writes into a `.tmp/`
   directory that it does not create.
+- `simulate_new_data.py` has the same `fastparquet` dependency and also writes into `.tmp/`
+  and `continuous_data/` without creating them.
+- An environment created before Week 3 lacks the `delta-spark` Python package, which
+  `data_ingestion.py` imports. Install it with `pip install delta-spark==3.1.0`, which also
+  installs `importlib_metadata`. Both environment files now declare it.

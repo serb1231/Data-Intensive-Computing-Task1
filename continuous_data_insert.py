@@ -4,6 +4,7 @@ from data_ingestion import (
     trip_data_process, build_integrated_trips, build_spark
 )
 from schemas import weather_schema, air_quality_schema
+import monitoring
 
 AIR_QUALITY_PATH = "continuous_data/air_quality_continuous.csv"
 TRIP_DATA_PATH = "continuous_data/tripdata_merged_no_duplicates_continuous_sorted.parquet"
@@ -12,6 +13,7 @@ WEATHER_PATH = "continuous_data/weather_continuous.csv"
 
 def main():
     spark = build_spark()
+    monitoring.start_run("incremental_update")
 
     weather_raw = readDataGeneric(spark, WEATHER_PATH, "csv", weather_schema)
     air_qual_raw = readDataGeneric(spark, AIR_QUALITY_PATH, "csv", air_quality_schema)

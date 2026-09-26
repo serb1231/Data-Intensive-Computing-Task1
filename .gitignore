@@ -5,3 +5,4 @@ benchmark_output
 __pycache__
 .idea
 .DS_Store
+continuous_data
