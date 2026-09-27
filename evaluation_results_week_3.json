@@ -1,0 +1,1404 @@
+{
+  "started_at": "2026-09-26T20:56:27",
+  "reps": 3,
+  "initial_load": {
+    "Air Quality": {
+      "execution_time_seconds": 5.32,
+      "processed_records": 51885
+    },
+    "Integrated Taxi Trips": {
+      "execution_time_seconds": 31.21,
+      "processed_records": 8480410
+    },
+    "Taxi Zones": {
+      "execution_time_seconds": 0.68,
+      "processed_records": 265
+    },
+    "Trip Data": {
+      "execution_time_seconds": 30.87,
+      "processed_records": 9554778
+    },
+    "Weather": {
+      "execution_time_seconds": 10.07,
+      "processed_records": 8784
+    }
+  },
+  "overhead_trials": {
+    "configs": {
+      "baseline": {
+        "median_seconds": 46.54,
+        "min_seconds": 46.33,
+        "max_seconds": 49.31,
+        "runs_seconds": [
+          46.33,
+          49.31,
+          46.54
+        ],
+        "datasets": {
+          "Weather": {
+            "median_seconds": 8.03,
+            "min_seconds": 7.18,
+            "max_seconds": 8.14
+          },
+          "Air Quality": {
+            "median_seconds": 8.46,
+            "min_seconds": 8.43,
+            "max_seconds": 9.12
+          },
+          "Trip Data": {
+            "median_seconds": 16.88,
+            "min_seconds": 15.91,
+            "max_seconds": 17.81
+          },
+          "Integrated Taxi Trips": {
+            "median_seconds": 13.02,
+            "min_seconds": 12.08,
+            "max_seconds": 14.05
+          },
+          "Integrated re-enrichment": {
+            "median_seconds": 0.0,
+            "min_seconds": 0.0,
+            "max_seconds": 0.0
+          }
+        }
+      },
+      "no_validation": {
+        "median_seconds": 38.27,
+        "min_seconds": 37.15,
+        "max_seconds": 38.48,
+        "runs_seconds": [
+          37.15,
+          38.27,
+          38.48
+        ],
+        "datasets": {
+          "Weather": {
+            "median_seconds": 6.07,
+            "min_seconds": 5.97,
+            "max_seconds": 6.32
+          },
+          "Air Quality": {
+            "median_seconds": 7.27,
+            "min_seconds": 7.16,
+            "max_seconds": 7.87
+          },
+          "Trip Data": {
+            "median_seconds": 9.43,
+            "min_seconds": 8.8,
+            "max_seconds": 9.79
+          },
+          "Integrated Taxi Trips": {
+            "median_seconds": 14.04,
+            "min_seconds": 13.83,
+            "max_seconds": 14.3
+          },
+          "Integrated re-enrichment": {
+            "median_seconds": 0.0,
+            "min_seconds": 0.0,
+            "max_seconds": 0.0
+          }
+        }
+      },
+      "no_monitoring": {
+        "median_seconds": 39.4,
+        "min_seconds": 39.09,
+        "max_seconds": 43.91,
+        "runs_seconds": [
+          43.91,
+          39.09,
+          39.4
+        ],
+        "datasets": {
+          "Weather": {
+            "median_seconds": 5.84,
+            "min_seconds": 5.69,
+            "max_seconds": 6.14
+          },
+          "Air Quality": {
+            "median_seconds": 6.79,
+            "min_seconds": 6.4,
+            "max_seconds": 8.13
+          },
+          "Trip Data": {
+            "median_seconds": 15.08,
+            "min_seconds": 14.72,
+            "max_seconds": 16.57
+          },
+          "Integrated Taxi Trips": {
+            "median_seconds": 11.05,
+            "min_seconds": 10.97,
+            "max_seconds": 12.01
+          },
+          "Integrated re-enrichment": {
+            "median_seconds": 0.0,
+            "min_seconds": 0.0,
+            "max_seconds": 0.0
+          }
+        }
+      }
+    },
+    "validation_overhead": {
+      "total": {
+        "seconds": 8.27,
+        "pct_of_run_without": 21.6
+      },
+      "Weather": {
+        "seconds": 1.96,
+        "pct_of_run_without": 32.3
+      },
+      "Air Quality": {
+        "seconds": 1.19,
+        "pct_of_run_without": 16.4
+      },
+      "Trip Data": {
+        "seconds": 7.45,
+        "pct_of_run_without": 79.0
+      },
+      "Integrated Taxi Trips": {
+        "seconds": -1.02,
+        "pct_of_run_without": -7.3
+      },
+      "Integrated re-enrichment": {
+        "seconds": 0.0,
+        "pct_of_run_without": null
+      }
+    },
+    "monitoring_overhead": {
+      "total": {
+        "seconds": 7.14,
+        "pct_of_run_without": 18.1
+      },
+      "Weather": {
+        "seconds": 2.19,
+        "pct_of_run_without": 37.5
+      },
+      "Air Quality": {
+        "seconds": 1.67,
+        "pct_of_run_without": 24.6
+      },
+      "Trip Data": {
+        "seconds": 1.8,
+        "pct_of_run_without": 11.9
+      },
+      "Integrated Taxi Trips": {
+        "seconds": 1.97,
+        "pct_of_run_without": 17.8
+      },
+      "Integrated re-enrichment": {
+        "seconds": 0.0,
+        "pct_of_run_without": null
+      }
+    },
+    "validate_seconds_reported_by_pipeline": 19.42,
+    "trials": {
+      "baseline": [
+        {
+          "total_seconds": 46.33,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 8.14,
+              "execution_time_seconds": 6.59,
+              "validate_seconds": 2.08,
+              "write_seconds": 4.4,
+              "processed_records": 8760,
+              "inserted_records": 8759,
+              "rejected_records": 1,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 9.12,
+              "execution_time_seconds": 7.35,
+              "validate_seconds": 4.71,
+              "write_seconds": 0.99,
+              "processed_records": 51714,
+              "inserted_records": 43,
+              "rejected_records": 51671,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 15.91,
+              "execution_time_seconds": 13.68,
+              "validate_seconds": 8.56,
+              "write_seconds": 5.05,
+              "processed_records": 2053913,
+              "inserted_records": 1677034,
+              "rejected_records": 376879,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 12.08,
+              "execution_time_seconds": 10.55,
+              "validate_seconds": 1.84,
+              "write_seconds": 8.45,
+              "processed_records": 1677034,
+              "inserted_records": 1677034,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        },
+        {
+          "total_seconds": 49.31,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 8.03,
+              "execution_time_seconds": 5.83,
+              "validate_seconds": 1.89,
+              "write_seconds": 3.87,
+              "processed_records": 8760,
+              "inserted_records": 8759,
+              "rejected_records": 1,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 8.46,
+              "execution_time_seconds": 6.92,
+              "validate_seconds": 4.63,
+              "write_seconds": 1.05,
+              "processed_records": 51714,
+              "inserted_records": 43,
+              "rejected_records": 51671,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 17.81,
+              "execution_time_seconds": 16.43,
+              "validate_seconds": 10.98,
+              "write_seconds": 5.36,
+              "processed_records": 2053913,
+              "inserted_records": 1677034,
+              "rejected_records": 376879,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 14.05,
+              "execution_time_seconds": 12.32,
+              "validate_seconds": 2.77,
+              "write_seconds": 9.25,
+              "processed_records": 1677034,
+              "inserted_records": 1677034,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        },
+        {
+          "total_seconds": 46.54,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 7.18,
+              "execution_time_seconds": 5.8,
+              "validate_seconds": 1.97,
+              "write_seconds": 3.76,
+              "processed_records": 8760,
+              "inserted_records": 8759,
+              "rejected_records": 1,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 8.43,
+              "execution_time_seconds": 6.9,
+              "validate_seconds": 4.92,
+              "write_seconds": 0.97,
+              "processed_records": 51714,
+              "inserted_records": 43,
+              "rejected_records": 51671,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 16.88,
+              "execution_time_seconds": 15.5,
+              "validate_seconds": 10.16,
+              "write_seconds": 5.26,
+              "processed_records": 2053913,
+              "inserted_records": 1677034,
+              "rejected_records": 376879,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 13.02,
+              "execution_time_seconds": 11.56,
+              "validate_seconds": 2.37,
+              "write_seconds": 8.86,
+              "processed_records": 1677034,
+              "inserted_records": 1677034,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        }
+      ],
+      "no_validation": [
+        {
+          "total_seconds": 37.15,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 6.07,
+              "execution_time_seconds": 4.56,
+              "validate_seconds": 0.16,
+              "write_seconds": 4.33,
+              "processed_records": 8760,
+              "inserted_records": 8760,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 7.27,
+              "execution_time_seconds": 5.86,
+              "validate_seconds": 2.9,
+              "write_seconds": 1.32,
+              "processed_records": 51714,
+              "inserted_records": 51714,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 8.8,
+              "execution_time_seconds": 7.47,
+              "validate_seconds": 1.45,
+              "write_seconds": 5.93,
+              "processed_records": 2053913,
+              "inserted_records": 1886164,
+              "rejected_records": 0,
+              "duplicates_skipped": 167749,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 14.04,
+              "execution_time_seconds": 12.49,
+              "validate_seconds": 2.08,
+              "write_seconds": 10.17,
+              "processed_records": 2053913,
+              "inserted_records": 1886164,
+              "rejected_records": 0,
+              "duplicates_skipped": 167749,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        },
+        {
+          "total_seconds": 38.27,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 6.32,
+              "execution_time_seconds": 4.74,
+              "validate_seconds": 0.19,
+              "write_seconds": 4.48,
+              "processed_records": 8760,
+              "inserted_records": 8760,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 7.16,
+              "execution_time_seconds": 5.76,
+              "validate_seconds": 2.68,
+              "write_seconds": 1.43,
+              "processed_records": 51714,
+              "inserted_records": 51714,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 9.43,
+              "execution_time_seconds": 7.97,
+              "validate_seconds": 1.55,
+              "write_seconds": 6.34,
+              "processed_records": 2053913,
+              "inserted_records": 1886164,
+              "rejected_records": 0,
+              "duplicates_skipped": 167749,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 14.3,
+              "execution_time_seconds": 12.52,
+              "validate_seconds": 2.39,
+              "write_seconds": 9.84,
+              "processed_records": 2053913,
+              "inserted_records": 1886164,
+              "rejected_records": 0,
+              "duplicates_skipped": 167749,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        },
+        {
+          "total_seconds": 38.48,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 5.97,
+              "execution_time_seconds": 4.43,
+              "validate_seconds": 0.16,
+              "write_seconds": 4.21,
+              "processed_records": 8760,
+              "inserted_records": 8760,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 7.87,
+              "execution_time_seconds": 5.96,
+              "validate_seconds": 3.06,
+              "write_seconds": 1.63,
+              "processed_records": 51714,
+              "inserted_records": 51714,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 9.79,
+              "execution_time_seconds": 7.76,
+              "validate_seconds": 1.54,
+              "write_seconds": 6.13,
+              "processed_records": 2053913,
+              "inserted_records": 1886164,
+              "rejected_records": 0,
+              "duplicates_skipped": 167749,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 13.83,
+              "execution_time_seconds": 12.42,
+              "validate_seconds": 2.26,
+              "write_seconds": 9.92,
+              "processed_records": 2053913,
+              "inserted_records": 1886164,
+              "rejected_records": 0,
+              "duplicates_skipped": 167749,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        }
+      ],
+      "no_monitoring": [
+        {
+          "total_seconds": 43.91,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 6.14,
+              "execution_time_seconds": 6.14,
+              "validate_seconds": 2.13,
+              "write_seconds": 3.94,
+              "processed_records": 8760,
+              "inserted_records": 8759,
+              "rejected_records": 1,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 8.13,
+              "execution_time_seconds": 8.12,
+              "validate_seconds": 5.43,
+              "write_seconds": 1.01,
+              "processed_records": 51714,
+              "inserted_records": 43,
+              "rejected_records": 51671,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 16.57,
+              "execution_time_seconds": 16.57,
+              "validate_seconds": 10.61,
+              "write_seconds": 5.86,
+              "processed_records": 2053913,
+              "inserted_records": 1677034,
+              "rejected_records": 376879,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 12.01,
+              "execution_time_seconds": 12.01,
+              "validate_seconds": 2.24,
+              "write_seconds": 9.52,
+              "processed_records": 1677034,
+              "inserted_records": 1677034,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        },
+        {
+          "total_seconds": 39.09,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 5.69,
+              "execution_time_seconds": 5.68,
+              "validate_seconds": 1.89,
+              "write_seconds": 3.73,
+              "processed_records": 8760,
+              "inserted_records": 8759,
+              "rejected_records": 1,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 6.4,
+              "execution_time_seconds": 6.39,
+              "validate_seconds": 4.28,
+              "write_seconds": 0.9,
+              "processed_records": 51714,
+              "inserted_records": 43,
+              "rejected_records": 51671,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 15.08,
+              "execution_time_seconds": 15.08,
+              "validate_seconds": 9.67,
+              "write_seconds": 5.32,
+              "processed_records": 2053913,
+              "inserted_records": 1677034,
+              "rejected_records": 376879,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 10.97,
+              "execution_time_seconds": 10.97,
+              "validate_seconds": 1.93,
+              "write_seconds": 8.76,
+              "processed_records": 1677034,
+              "inserted_records": 1677034,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        },
+        {
+          "total_seconds": 39.4,
+          "datasets": {
+            "Weather": {
+              "wall_seconds": 5.84,
+              "execution_time_seconds": 5.84,
+              "validate_seconds": 2.01,
+              "write_seconds": 3.76,
+              "processed_records": 8760,
+              "inserted_records": 8759,
+              "rejected_records": 1,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Air Quality": {
+              "wall_seconds": 6.79,
+              "execution_time_seconds": 6.79,
+              "validate_seconds": 4.63,
+              "write_seconds": 1.03,
+              "processed_records": 51714,
+              "inserted_records": 43,
+              "rejected_records": 51671,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Trip Data": {
+              "wall_seconds": 14.72,
+              "execution_time_seconds": 14.72,
+              "validate_seconds": 9.49,
+              "write_seconds": 5.15,
+              "processed_records": 2053913,
+              "inserted_records": 1677034,
+              "rejected_records": 376879,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated Taxi Trips": {
+              "wall_seconds": 11.05,
+              "execution_time_seconds": 11.05,
+              "validate_seconds": 1.87,
+              "write_seconds": 8.96,
+              "processed_records": 1677034,
+              "inserted_records": 1677034,
+              "rejected_records": 0,
+              "duplicates_skipped": 0,
+              "status": "succeeded"
+            },
+            "Integrated re-enrichment": {
+              "wall_seconds": 0.0,
+              "execution_time_seconds": null,
+              "validate_seconds": null,
+              "write_seconds": null,
+              "processed_records": null,
+              "inserted_records": null,
+              "rejected_records": null,
+              "duplicates_skipped": null,
+              "status": null
+            }
+          }
+        }
+      ]
+    }
+  },
+  "storage_before_update": {
+    "curated": {
+      "weather": {
+        "live_bytes": 2526840,
+        "live_files": 366,
+        "disk_bytes": 42717666,
+        "log_bytes": 13498447,
+        "version": 20
+      },
+      "air_quality": {
+        "live_bytes": 2284429,
+        "live_files": 1,
+        "disk_bytes": 9587729,
+        "log_bytes": 591874,
+        "version": 20
+      },
+      "taxi_zones": {
+        "live_bytes": 5942,
+        "live_files": 1,
+        "disk_bytes": 7497,
+        "log_bytes": 1499,
+        "version": 0
+      },
+      "trip_data": {
+        "live_bytes": 471101208,
+        "live_files": 6,
+        "disk_bytes": 1439823860,
+        "log_bytes": 422463,
+        "version": 20
+      },
+      "integrated_taxi_trips": {
+        "live_bytes": 587594973,
+        "live_files": 6,
+        "disk_bytes": 1778376655,
+        "log_bytes": 454548,
+        "version": 20
+      },
+      "_total": {
+        "live_bytes": 1063513392,
+        "live_files": 380,
+        "disk_bytes": 3270513407,
+        "log_bytes": 14968831
+      }
+    },
+    "quarantine": {
+      "trip_data": {
+        "live_bytes": 61048718,
+        "live_files": 2,
+        "disk_bytes": 144778756,
+        "log_bytes": 316233,
+        "version": 17
+      },
+      "weather": {
+        "live_bytes": 8605,
+        "live_files": 1,
+        "disk_bytes": 395926,
+        "log_bytes": 324351,
+        "version": 17
+      },
+      "_total": {
+        "live_bytes": 61057323,
+        "live_files": 3,
+        "disk_bytes": 145174682,
+        "log_bytes": 640584
+      }
+    },
+    "monitoring": {
+      "pipeline_runs": {
+        "live_bytes": 311037,
+        "live_files": 33,
+        "disk_bytes": 489260,
+        "log_bytes": 175455,
+        "version": 32
+      },
+      "validation_results": {
+        "live_bytes": 129344,
+        "live_files": 33,
+        "disk_bytes": 257178,
+        "log_bytes": 126510,
+        "version": 32
+      },
+      "_total": {
+        "live_bytes": 440381,
+        "live_files": 66,
+        "disk_bytes": 746438,
+        "log_bytes": 301965
+      }
+    },
+    "data_products": {
+      "_registry": {
+        "live_bytes": 26763,
+        "live_files": 5,
+        "disk_bytes": 46833,
+        "log_bytes": 11375,
+        "version": 4
+      },
+      "air_quality_impact_summary": {
+        "live_bytes": 63525,
+        "live_files": 3,
+        "disk_bytes": 69909,
+        "log_bytes": 5856,
+        "version": 0
+      },
+      "borough_mobility_summary": {
+        "live_bytes": 121286,
+        "live_files": 3,
+        "disk_bytes": 129163,
+        "log_bytes": 6897,
+        "version": 0
+      },
+      "daily_mobility_summary": {
+        "live_bytes": 20735,
+        "live_files": 3,
+        "disk_bytes": 28238,
+        "log_bytes": 7311,
+        "version": 0
+      },
+      "taxi_zone_statistics": {
+        "live_bytes": 48653,
+        "live_files": 3,
+        "disk_bytes": 55733,
+        "log_bytes": 6672,
+        "version": 0
+      },
+      "weather_impact_summary": {
+        "live_bytes": 171373,
+        "live_files": 3,
+        "disk_bytes": 180250,
+        "log_bytes": 7509,
+        "version": 0
+      },
+      "_total": {
+        "live_bytes": 452335,
+        "live_files": 20,
+        "disk_bytes": 510126,
+        "log_bytes": 45620
+      }
+    }
+  },
+  "full_refresh_before_update": {
+    "source_version": 20,
+    "window": "2024-01,2024-02,2024-03",
+    "seconds": 16.78,
+    "products": {
+      "daily_mobility_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "taxi_zone_statistics": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "weather_impact_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "air_quality_impact_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "borough_mobility_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      }
+    },
+    "refreshes": [
+      {
+        "product_name": "daily_mobility_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 1.95,
+        "row_count": 91,
+        "size_bytes": 20735
+      },
+      {
+        "product_name": "taxi_zone_statistics",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 1.35,
+        "row_count": 755,
+        "size_bytes": 48653
+      },
+      {
+        "product_name": "weather_impact_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 1.5,
+        "row_count": 3233,
+        "size_bytes": 171373
+      },
+      {
+        "product_name": "air_quality_impact_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 0.91,
+        "row_count": 2182,
+        "size_bytes": 63531
+      },
+      {
+        "product_name": "borough_mobility_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 2.0,
+        "row_count": 3186,
+        "size_bytes": 121286
+      }
+    ]
+  },
+  "update": {
+    "total_seconds": 42.31,
+    "datasets": {
+      "Weather": {
+        "wall_seconds": 6.27,
+        "execution_time_seconds": 4.89,
+        "validate_seconds": 1.25,
+        "write_seconds": 3.59,
+        "processed_records": 8760,
+        "inserted_records": 8759,
+        "rejected_records": 1,
+        "duplicates_skipped": 0,
+        "status": "succeeded"
+      },
+      "Air Quality": {
+        "wall_seconds": 7.54,
+        "execution_time_seconds": 6.18,
+        "validate_seconds": 4.31,
+        "write_seconds": 0.84,
+        "processed_records": 51714,
+        "inserted_records": 43,
+        "rejected_records": 51671,
+        "duplicates_skipped": 0,
+        "status": "succeeded"
+      },
+      "Trip Data": {
+        "wall_seconds": 15.5,
+        "execution_time_seconds": 14.13,
+        "validate_seconds": 8.91,
+        "write_seconds": 5.15,
+        "processed_records": 2053913,
+        "inserted_records": 1677034,
+        "rejected_records": 376879,
+        "duplicates_skipped": 0,
+        "status": "succeeded"
+      },
+      "Integrated Taxi Trips": {
+        "wall_seconds": 12.55,
+        "execution_time_seconds": 11.16,
+        "validate_seconds": 2.02,
+        "write_seconds": 8.9,
+        "processed_records": 1677034,
+        "inserted_records": 1677034,
+        "rejected_records": 0,
+        "duplicates_skipped": 0,
+        "status": "succeeded"
+      },
+      "Integrated re-enrichment": {
+        "wall_seconds": 0.0,
+        "execution_time_seconds": null,
+        "validate_seconds": null,
+        "write_seconds": null,
+        "processed_records": null,
+        "inserted_records": null,
+        "rejected_records": null,
+        "duplicates_skipped": null,
+        "status": null
+      }
+    }
+  },
+  "incremental_refresh": {
+    "source_version": 21,
+    "window": "2024-01,2024-02,2024-03,2024-04",
+    "seconds": 11.85,
+    "products": {
+      "daily_mobility_summary": {
+        "mode": "incremental",
+        "reason": "source changed in 2024-04 (versions 21..21); optional column(s) ['humidity'] now present",
+        "months": "2024-04"
+      },
+      "taxi_zone_statistics": {
+        "mode": "incremental",
+        "reason": "source changed in 2024-04 (versions 21..21)",
+        "months": "2024-04"
+      },
+      "weather_impact_summary": {
+        "mode": "incremental",
+        "reason": "source changed in 2024-04 (versions 21..21)",
+        "months": "2024-04"
+      },
+      "air_quality_impact_summary": {
+        "mode": "incremental",
+        "reason": "source changed in 2024-04 (versions 21..21); optional column(s) ['aqi'] now present",
+        "months": "2024-04"
+      },
+      "borough_mobility_summary": {
+        "mode": "incremental",
+        "reason": "source changed in 2024-04 (versions 21..21)",
+        "months": "2024-04"
+      }
+    },
+    "refreshes": [
+      {
+        "product_name": "daily_mobility_summary",
+        "refresh_mode": "incremental",
+        "refreshed_partitions": "2024-04",
+        "build_seconds": 1.3,
+        "row_count": 100,
+        "size_bytes": 26488
+      },
+      {
+        "product_name": "taxi_zone_statistics",
+        "refresh_mode": "incremental",
+        "refreshed_partitions": "2024-04",
+        "build_seconds": 0.87,
+        "row_count": 1003,
+        "size_bytes": 64517
+      },
+      {
+        "product_name": "weather_impact_summary",
+        "refresh_mode": "incremental",
+        "refreshed_partitions": "2024-04",
+        "build_seconds": 1.04,
+        "row_count": 4166,
+        "size_bytes": 222022
+      },
+      {
+        "product_name": "air_quality_impact_summary",
+        "refresh_mode": "incremental",
+        "refreshed_partitions": "2024-04",
+        "build_seconds": 0.73,
+        "row_count": 2340,
+        "size_bytes": 71452
+      },
+      {
+        "product_name": "borough_mobility_summary",
+        "refresh_mode": "incremental",
+        "refreshed_partitions": "2024-04",
+        "build_seconds": 1.3,
+        "row_count": 4122,
+        "size_bytes": 157585
+      }
+    ],
+    "seconds_including_planning": 12.76
+  },
+  "noop_refresh": {
+    "source_version": 21,
+    "window": "2024-01,2024-02,2024-03,2024-04",
+    "seconds": 0.0,
+    "products": {
+      "daily_mobility_summary": {
+        "mode": "skip",
+        "reason": "already built from version 21",
+        "months": null
+      },
+      "taxi_zone_statistics": {
+        "mode": "skip",
+        "reason": "already built from version 21",
+        "months": null
+      },
+      "weather_impact_summary": {
+        "mode": "skip",
+        "reason": "already built from version 21",
+        "months": null
+      },
+      "air_quality_impact_summary": {
+        "mode": "skip",
+        "reason": "already built from version 21",
+        "months": null
+      },
+      "borough_mobility_summary": {
+        "mode": "skip",
+        "reason": "already built from version 21",
+        "months": null
+      }
+    },
+    "refreshes": [],
+    "seconds_including_planning": 0.51
+  },
+  "verification": {
+    "daily_mobility_summary": {
+      "expected_rows": 100,
+      "stored_rows": 100,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    },
+    "taxi_zone_statistics": {
+      "expected_rows": 1003,
+      "stored_rows": 1003,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    },
+    "weather_impact_summary": {
+      "expected_rows": 4166,
+      "stored_rows": 4166,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    },
+    "air_quality_impact_summary": {
+      "expected_rows": 2340,
+      "stored_rows": 2340,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    },
+    "borough_mobility_summary": {
+      "expected_rows": 4122,
+      "stored_rows": 4122,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    },
+    "weather_impact_summary (Week 2 view)": {
+      "expected_rows": 1217,
+      "stored_rows": 1217,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    },
+    "borough_mobility_summary (Week 2 view)": {
+      "expected_rows": 1188,
+      "stored_rows": 1188,
+      "missing_rows": 0,
+      "extra_rows": 0,
+      "value_mismatches": 0,
+      "consistent": true
+    }
+  },
+  "full_refresh_after_update": {
+    "source_version": 21,
+    "window": "2024-01,2024-02,2024-03,2024-04",
+    "seconds": 19.92,
+    "products": {
+      "daily_mobility_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "taxi_zone_statistics": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "weather_impact_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "air_quality_impact_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      },
+      "borough_mobility_summary": {
+        "mode": "full",
+        "reason": "full refresh requested",
+        "months": null
+      }
+    },
+    "refreshes": [
+      {
+        "product_name": "daily_mobility_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 2.31,
+        "row_count": 100,
+        "size_bytes": 26488
+      },
+      {
+        "product_name": "taxi_zone_statistics",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 1.56,
+        "row_count": 1003,
+        "size_bytes": 64517
+      },
+      {
+        "product_name": "weather_impact_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 1.7,
+        "row_count": 4166,
+        "size_bytes": 222022
+      },
+      {
+        "product_name": "air_quality_impact_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 0.99,
+        "row_count": 2340,
+        "size_bytes": 71452
+      },
+      {
+        "product_name": "borough_mobility_summary",
+        "refresh_mode": "full",
+        "refreshed_partitions": "all",
+        "build_seconds": 2.54,
+        "row_count": 4122,
+        "size_bytes": 157585
+      }
+    ],
+    "seconds_including_planning": 20.26
+  },
+  "storage_after_update": {
+    "curated": {
+      "weather": {
+        "live_bytes": 5169038,
+        "live_files": 731,
+        "disk_bytes": 45928909,
+        "log_bytes": 14042796,
+        "version": 21
+      },
+      "air_quality": {
+        "live_bytes": 2324481,
+        "live_files": 5,
+        "disk_bytes": 9641753,
+        "log_bytes": 605494,
+        "version": 21
+      },
+      "taxi_zones": {
+        "live_bytes": 5942,
+        "live_files": 1,
+        "disk_bytes": 7497,
+        "log_bytes": 1499,
+        "version": 0
+      },
+      "trip_data": {
+        "live_bytes": 562737146,
+        "live_files": 7,
+        "disk_bytes": 1532178606,
+        "log_bytes": 425355,
+        "version": 21
+      },
+      "integrated_taxi_trips": {
+        "live_bytes": 700405156,
+        "live_files": 7,
+        "disk_bytes": 1892075369,
+        "log_bytes": 461739,
+        "version": 21
+      },
+      "_total": {
+        "live_bytes": 1270641763,
+        "live_files": 751,
+        "disk_bytes": 3479832134,
+        "log_bytes": 15536883
+      }
+    },
+    "quarantine": {
+      "air_quality": {
+        "live_bytes": 2356346,
+        "live_files": 1,
+        "disk_bytes": 2381182,
+        "log_bytes": 6416,
+        "version": 0
+      },
+      "trip_data": {
+        "live_bytes": 72804983,
+        "live_files": 3,
+        "disk_bytes": 156632323,
+        "log_bytes": 321679,
+        "version": 18
+      },
+      "weather": {
+        "live_bytes": 17509,
+        "live_files": 2,
+        "disk_bytes": 410180,
+        "log_bytes": 329621,
+        "version": 18
+      },
+      "_total": {
+        "live_bytes": 75178838,
+        "live_files": 6,
+        "disk_bytes": 159423685,
+        "log_bytes": 657716
+      }
+    },
+    "monitoring": {
+      "pipeline_runs": {
+        "live_bytes": 349018,
+        "live_files": 37,
+        "disk_bytes": 539827,
+        "log_bytes": 187705,
+        "version": 36
+      },
+      "validation_results": {
+        "live_bytes": 145877,
+        "live_files": 37,
+        "disk_bytes": 279910,
+        "log_bytes": 132545,
+        "version": 36
+      },
+      "_total": {
+        "live_bytes": 494895,
+        "live_files": 74,
+        "disk_bytes": 819737,
+        "log_bytes": 320250
+      }
+    },
+    "data_products": {
+      "_registry": {
+        "live_bytes": 109436,
+        "live_files": 20,
+        "disk_bytes": 214931,
+        "log_bytes": 70691,
+        "version": 19
+      },
+      "air_quality_impact_summary": {
+        "live_bytes": 71452,
+        "live_files": 4,
+        "disk_bytes": 228007,
+        "log_bytes": 19850,
+        "version": 3
+      },
+      "borough_mobility_summary": {
+        "live_bytes": 157585,
+        "live_files": 4,
+        "disk_bytes": 462943,
+        "log_bytes": 22963,
+        "version": 3
+      },
+      "daily_mobility_summary": {
+        "live_bytes": 26488,
+        "live_files": 4,
+        "disk_bytes": 98409,
+        "log_bytes": 24010,
+        "version": 3
+      },
+      "taxi_zone_statistics": {
+        "live_bytes": 64517,
+        "live_files": 4,
+        "disk_bytes": 201516,
+        "log_bytes": 22341,
+        "version": 3
+      },
+      "weather_impact_summary": {
+        "live_bytes": 222022,
+        "live_files": 4,
+        "disk_bytes": 645280,
+        "log_bytes": 24951,
+        "version": 3
+      },
+      "_total": {
+        "live_bytes": 651500,
+        "live_files": 40,
+        "disk_bytes": 1851086,
+        "log_bytes": 184806
+      }
+    }
+  },
+  "finished_at": "2026-09-26T21:08:17"
+}

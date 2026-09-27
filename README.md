@@ -2,6 +2,40 @@
 
 This repository contains a PySpark-based data ingestion and integration pipeline. It processes heterogeneous datasets (NYC Taxi Trips, Weather, Air Quality, and Taxi Zones), standardizes them into a Common Data Model, applies data quality checks, and stores them as partitioned Delta Lake tables.
 
+## Project layout
+
+Scripts you run, in the order of section 2 (the step numbers refer to it):
+
+| File | Week | What it does | Step |
+| --- | --- | --- | --- |
+| `data_ingestion.py` | 1 | Initial load: reads the four sources, validates them, writes the curated Delta tables and the integrated table | 6 |
+| `benchmark.py` | 1 | Compares two partitioning strategies for the trips table | 7 |
+| `analytical_queries.py` | 2 | The six analytical queries as Spark SQL (also imported by later scripts) | 8 |
+| `query_optimization_techniques.py` | 2 | Caching, partition pruning, broadcast join and AQE experiments | 9 |
+| `data_products.py` | 2, 3 | Defines the five data products and rebuilds them in full | 10 |
+| `simulate_new_data.py` | 3 | Generates the incremental update files into `continuous_data/` (Task 1) | 11 |
+| `continuous_data_insert.py` | 3 | Loads the update, re-enriches affected months, refreshes affected products (Tasks 1–2) | 12 |
+| `monitoring.py` | 3 | Records every pipeline execution; `python monitoring.py` prints the operational report (Task 3) | 13 |
+| `validation.py` | 3 | The validation engine and quarantine; `python validation.py` prints the validation report (Task 4) | 14 |
+| `refresh_manager.py` | 3 | Plans and runs the refresh of only the data products that new data affects (Task 2) | 16 |
+| `evaluate_platform.py` | 3 | Measures update/refresh time, validation and monitoring overhead, storage (Task 5) | 17 |
+
+Configuration and support files, not run directly:
+
+| File | What it holds |
+| --- | --- |
+| `schemas.py` | Declared schema of every source, including the Week 3 columns `humidity` and `aqi` |
+| `validation_rules.py` | The validation rules of every dataset, as configuration (add a rule here) |
+| `tests/` | `test_validation.py` (Task 4 fault injection), `test_refresh.py` (Task 2 refresh planner); step 15 |
+| `readParquet.py` | Exploratory duplicate analysis from Week 1; not part of the pipeline |
+| `environment.yml`, `environment_mac.yml` | Conda environments |
+
+Reports: `Design Report Week N.md` and `Benchmark Report Week 1/2.md` for each week, and
+`Evaluation Report Week 3.md` for Week 3, Task 5. Raw measurements are in
+`benchmark_results_week_1.json` and `evaluation_results_week_3.json`. `Architecture.md`
+describes the Week 1 pipeline. Generated data goes to `output_data/`: the curated tables,
+`data_products/`, `monitoring/` and `quarantine/`, all Delta tables and git-ignored.
+
 ## 1. Prerequisites
 
 To run this pipeline, you must have the following installed on your machine:
@@ -121,15 +155,22 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    single cached scan of the integrated table; the five aggregations on top take ~8 seconds
    and produce ~171 KB in total. The design rationale for each product is in
    `Design Report Week 2.md` (Task 4); storage overhead, build times and the on-demand versus
-   materialized comparison are in `Week2 Benchmark Report.md`.
+   materialized comparison are in `Benchmark Report Week 2.md`.
 
    Useful variants:
 
    ```bash
-   python data_products.py --product weather_impact_summary  # refresh a single product
-   python data_products.py --month 2024-03                   # rebuild only March in the daily summary
+   python data_products.py --product weather_impact_summary  # rebuild a single product
+   python data_products.py --month 2024-03                   # rebuild only March of every product
    python data_products.py --no-cache                        # skip CACHE TABLE, to measure what caching is worth
    ```
+
+   Since Week 3 every product is partitioned by `(year, month)` and covers every month with at
+   least 1,000 trips (discovered from the data, no longer hard-coded to January–March 2024).
+   `weather_impact_summary` and `borough_mobility_summary` are stored at a monthly grain; their
+   Week 2 shape is served by compatibility views of the same name
+   (`data_products.register_product_views(spark)`), so Week 2 queries run unchanged. After an
+   incremental load, use `refresh_manager.py` (step 16) instead of rebuilding everything.
 
    To inspect a product's lineage afterwards, every refresh also writes its metadata into the
    Delta commit itself:
@@ -148,8 +189,16 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
 12. Run the continuous_data_insert.py
    This script will integrate the newly generated data inside the existing datalake.
    ```bash
-   python continuous_data_insert.py
+   python continuous_data_insert.py               # load, re-enrich, refresh the affected products
+   python continuous_data_insert.py --no-refresh  # load and re-enrich only
    ```
+
+   After the four tables are merged, integrated months whose weather or air quality arrived
+   after their trips are rebuilt (re-enrichment), and then only the data products affected by
+   the release are refreshed (step 16). A second run of the same release inserts nothing
+   (every record is recognised as already loaded) and the refresh skips every product. The
+   records it rejects are appended to the quarantine again, though: the quarantine is not yet
+   idempotent (see `Evaluation Report Week 3.md`).
 
    Every batch, initial or incremental, now goes through the Week 3 validation framework
    (`validation.py`, rules in `validation_rules.py`) and is recorded by the monitoring component
@@ -193,9 +242,11 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    To add a validation rule, append it to the dataset's list in `validation_rules.py` (see the
    docstring there). The engine in `validation.py` does not change.
 
-15. Run the fault-injection tests (about 40 seconds). They push small batches with known
-   problems through the real pipeline in a temporary directory and check that every problem is
-   detected, quarantined and recorded:
+15. Run the tests (about 2 minutes). `tests/test_validation.py` pushes small batches with known
+   problems through the real pipeline in a temporary directory and checks that every problem is
+   detected, quarantined and recorded. `tests/test_refresh.py` changes a tiny integrated table
+   the way a release does (new month, rewritten month, new or lost column, late weather) and
+   checks that the refresh planner rebuilds exactly what is affected:
 
    ```bash
    python -m pytest tests
@@ -204,6 +255,38 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    For the Task 5 overhead measurements, two switches run the same pipeline without a component:
    `PLATFORM_VALIDATION=off` (no record-level rules) and `PLATFORM_MONITORING=off` (no
    monitoring writes), e.g. `PLATFORM_MONITORING=off python continuous_data_insert.py`.
+
+16. Refresh the analytical data products after new data (Week 3, Task 2). The planner reads the
+   integrated table's Delta log since each product's last refresh and decides, per product,
+   between a full rebuild, an incremental rebuild of the changed months, skipping it, or
+   blocking it (a column it needs was removed) — and prints why:
+
+   ```bash
+   python refresh_manager.py --dry-run   # show the plan only
+   python refresh_manager.py             # refresh what the plan says
+   python refresh_manager.py --verify    # ...then compare every product with a from-scratch build
+   python refresh_manager.py --full      # rebuild every product over the whole window
+   ```
+
+   `continuous_data_insert.py` runs the same refresh at the end of every load. The registry
+   (`output_data/data_products/_registry`) records each refresh's mode, the partitions it
+   rebuilt, the reason, and the source schema it was built from. The strategy is described in
+   `Design Report Week 3.md` (Task 2).
+
+17. Reproduce the evaluation (Week 3, Task 5). It needs a fresh initial load (step 6) and the
+   update files (step 11), but no update loaded yet:
+
+   ```bash
+   python evaluate_platform.py            # about 12 minutes; --reps N for more or fewer trials
+   ```
+
+   It loads the update under three configurations (everything on, validation off, monitoring
+   off), restoring the tables to their pre-update Delta versions after every trial. Then it
+   loads the update for real, times the incremental, no-op and full refreshes, checks the
+   incremental result against a from-scratch build, and measures storage before and after.
+   Raw measurements are written to `evaluation_results_week_3.json`; results and discussion
+   are in `Evaluation Report Week 3.md`. The trials are recorded in the monitoring tables with
+   `pipeline = 'evaluation:<config>'`.
 
 ## 3. Apple Silicon (macOS arm64) notes
 
@@ -233,4 +316,5 @@ Verified end to end on an M2 Pro (16 GB RAM, macOS 26.5) using `environment_mac.
   and `continuous_data/` without creating them.
 - An environment created before Week 3 lacks the `delta-spark` Python package, which
   `data_ingestion.py` imports. Install it with `pip install delta-spark==3.1.0`, which also
-  installs `importlib_metadata`. Both environment files now declare it.
+  installs `importlib_metadata`. Both environment files now declare it. The same applies to
+  `pytest` (step 15): `pip install pytest`.

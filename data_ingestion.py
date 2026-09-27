@@ -268,30 +268,40 @@ AQ_PARAMETER_FRIENDLY_NAMES = {
     "Sulfur dioxide": "so2",
 }
 
+# enrichment columns introduced by later releases; joined into the integrated table when present
+ENRICHMENT_ADDITIONS = {"weather": ["humidity"], "air_quality": ["aqi"]}
+
 # Task 5
 def build_integrated_trips(trips, weather, air_quality, taxi_zones):
     # truncate trip pickup to the hour (temporal join key)
     trips = trips.withColumn("pickup_hour", date_trunc("hour", col("tpep_pickup_datetime")))
 
-    # weather: select only measurements, avoid year/month/day/hour collision
-    weather_sel = weather.select(
-        col("timestamp").alias("weather_hour"),
-        col("temp"), col("rhum"), col("prcp"),
-        col("snwd"), col("wspd"), col("pres"), col("coco")
-    )
+    # weather: select only measurements, avoid year/month/day/hour collision.
+    # Columns added by a later release (Week 3: humidity) are carried once the table has them,
+    # and the integrated table picks them up through the same schema evolution as any other table.
+    weather_measures = ["temp", "rhum", "prcp", "snwd", "wspd", "pres", "coco"]
+    weather_measures += [c for c in ENRICHMENT_ADDITIONS["weather"] if c in weather.columns]
+    weather_sel = weather.select(col("timestamp").alias("weather_hour"), *weather_measures)
 
     # air quality: collapse to ONE row per hour, pivoted per parameter
     # (keeps each pollutant in its own units instead of averaging across units)
-    aq_hourly = (air_quality
-        .withColumn("aq_hour", date_trunc("hour", col("timestamp_local")))
+    aq_by_hour = air_quality.withColumn("aq_hour", date_trunc("hour", col("timestamp_local")))
+    aq_hourly = (aq_by_hour
         .groupBy("aq_hour")
         .pivot("parameter_name")
         .agg(avg("sample_measurement")))
 
+    # Week 3: the release-level AQI is one number per observation, not per parameter, so it is
+    # averaged per hour on its own and joined next to the pivoted pollutants
+    aq_additions = [c for c in ENRICHMENT_ADDITIONS["air_quality"] if c in air_quality.columns]
+    if aq_additions:
+        aq_hourly = aq_hourly.join(
+            aq_by_hour.groupBy("aq_hour").agg(*[avg(c).alias(c) for c in aq_additions]), "aq_hour", "left")
+
     # pollutant names become column names dynamically (pivot); use a friendly
     # short name for known EPA parameters, else fall back to a normalized slug
     for column in aq_hourly.columns:
-        if column != "aq_hour":
+        if column != "aq_hour" and column not in aq_additions:
             col_renamed = AQ_PARAMETER_FRIENDLY_NAMES.get(
                 column, re.sub(r"[^0-9a-z]+", "_", column.strip().lower()).strip("_")
             )

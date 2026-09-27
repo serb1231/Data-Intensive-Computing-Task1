@@ -1,9 +1,3 @@
-"""Fault-injection tests for the validation framework (Task 4) and the monitoring tables (Task 3).
-
-Each test feeds the real pipeline code a small batch with known problems and checks that
-every problem is detected, isolated and reported, and that nothing else is.
-Run with:  python -m pytest tests
-"""
 from datetime import datetime, timedelta
 
 from delta.tables import DeltaTable
