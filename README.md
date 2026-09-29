@@ -20,6 +20,7 @@ Scripts you run, in the order of section 2 (the step numbers refer to it):
 | `refresh_manager.py` | 3 | Plans and runs the refresh of only the data products that new data affects (Task 2) | 16 |
 | `evaluate_platform.py` | 3 | Measures update/refresh time, validation and monitoring overhead, storage (Task 5) | 17 |
 | `training_dataset.py` | 4 | Generates the training dataset for hourly taxi demand from the Delta tables (Task 1) | 18 |
+| `feature_pipeline.py` | 4 | The reusable feature engineering pipeline: fits it on the train split, writes the feature dataset (Task 2) | 19 |
 
 Configuration and support files, not run directly:
 
@@ -27,15 +28,16 @@ Configuration and support files, not run directly:
 | --- | --- |
 | `schemas.py` | Declared schema of every source, including the Week 3 columns `humidity` and `aqi` |
 | `validation_rules.py` | The validation rules of every dataset, as configuration (add a rule here) |
-| `ml_config.py` | The ML pipeline's configuration: target, features, window, lags and splits of the training dataset |
-| `tests/` | `test_validation.py` (Week 3 Task 4 fault injection), `test_refresh.py` (Week 3 Task 2 refresh planner), `test_training_dataset.py` (Week 4 Task 1); step 15 |
+| `ml_config.py` | The ML pipeline's configuration: the training dataset (target, features, window, lags, splits) and how the feature pipeline treats each column |
+| `tests/` | `test_validation.py` (Week 3 Task 4 fault injection), `test_refresh.py` (Week 3 Task 2 refresh planner), `test_training_dataset.py` (Week 4 Task 1), `test_feature_pipeline.py` (Week 4 Task 2); step 15 |
 | `readParquet.py` | Exploratory duplicate analysis from Week 1; not part of the pipeline |
 | `environment.yml`, `environment_mac.yml` | Conda environments |
 
 Reports: `Design Report Week N.md` and `Benchmark Report Week 1/2.md` for each week, and
 `Evaluation Report Week 3.md` for Week 3, Task 5. Raw measurements are in
-`benchmark_results_week_1.json`, `evaluation_results_week_3.json` and, for the Week 4 training
-dataset, `training_dataset_week_4.json`. `Architecture.md` describes the Week 1 pipeline.
+`benchmark_results_week_1.json`, `evaluation_results_week_3.json` and, for Week 4,
+`training_dataset_week_4.json` and `feature_pipeline_week_4.json`. `Architecture.md` describes
+the Week 1 pipeline.
 Generated data goes to `output_data/`: the curated tables, `data_products/`, `monitoring/`,
 `quarantine/` and `ml/`, all Delta tables and git-ignored.
 
@@ -312,6 +314,42 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    dictionary of the columns and a measure of how much each source tells about demand. To change
    the target, a feature, a lag, the window or the splits, edit `ml_config.py`; the builder does not
    change. The design is described in `Design Report Week 4.md` (Task 1).
+
+19. Run the Week 4 feature engineering pipeline (Task 2). It needs the training dataset (step 18):
+
+   ```bash
+   python feature_pipeline.py              # fit on train, write the features; ~1.5 minutes
+   python feature_pipeline.py --no-probe   # the same without the random-forest probe; ~20 seconds
+   ```
+
+   The pipeline is a Spark ML `Pipeline` of standard stages, fitted on the train split only:
+
+   - calendar features derived from `pickup_hour`;
+   - `log1p` of the lags and a 0/1 flag for every quantity with missing values;
+   - median imputation, one-hot encoding of the codes, and scaling of the quantities;
+   - one `features` vector (293 slots).
+
+   It writes `output_data/ml/hourly_zone_demand_features` (Delta, partitioned by `split`: keys,
+   `trip_count`, `features`) and saves the fitted pipeline to
+   `output_data/ml/models/hourly_zone_demand_features`, loadable with `PipelineModel.load`.
+   `feature_pipeline_week_4.json` records the plan (which column goes through which stage and what
+   was dropped), what the stages learned (medians, means, standard deviations, categories), the
+   name of every slot, and a probe of how much each source dataset contributes.
+
+   To reuse the stages in a model (Task 3):
+
+   ```python
+   from pyspark.ml import Pipeline
+   from pyspark.ml.regression import GBTRegressor
+   from feature_pipeline import feature_pipeline
+
+   features, plan = feature_pipeline(train)  # train: the train split of the training dataset
+   model = Pipeline(stages=features.getStages() + [GBTRegressor(labelCol="trip_count")]).fit(train)
+   ```
+
+   A new feature needs one line in `ml_config.py`: its name in the dataset section, and its kind
+   (code, flag, count to log-transform) if it is not a plain quantity. A feature that is mostly
+   missing or constant in the train split is dropped automatically and reported.
 
 ## 3. Apple Silicon (macOS arm64) notes
 

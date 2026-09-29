@@ -1,9 +1,10 @@
 """Week 4: the configuration of the machine learning pipeline.
 
 This file holds no logic. It declares what the training dataset contains: the prediction
-problem, the columns taken from the platform, the time window, the lags and the splits.
-training_dataset.py (Task 1) builds whatever is declared here, so adding an hourly feature,
-a lag or another week of data is a change to this file, not to the builder.
+problem, the columns taken from the platform, the time window, the lags and the splits (Task 1),
+and how the feature pipeline treats each column (Task 2). training_dataset.py and
+feature_pipeline.py build whatever is declared here, so adding an hourly feature, a lag, a
+calendar feature or another week of data is a change to this file, not to the code.
 """
 from dataclasses import dataclass, field
 from typing import Optional
@@ -108,3 +109,64 @@ TRAINING_DATASET = HOURLY_ZONE_DEMAND
 # measurements of the latest build (row counts, split boundaries, null shares, signal per feature);
 # committed next to the Week 1 and Week 3 results
 MANIFEST_PATH = "training_dataset_week_4.json"
+
+
+@dataclass(frozen=True)
+class FeaturePipelineConfig:
+    # also the directory of the feature dataset under output_data/ml/ and of the fitted pipeline
+    # under output_data/ml/models/
+    name: str
+
+    # features derived from the local hour: column -> Spark SQL expression over pickup_hour
+    calendar_features: dict
+
+    # the derived features that are codes (one-hot encoded) and those that are 0/1 flags (used as
+    # they are). Every other derived or dataset feature not declared categorical is a quantity
+    categorical_calendar: tuple
+    binary_features: tuple
+
+    # counts spanning orders of magnitude: log1p before they are imputed and scaled
+    log_features: tuple
+
+    # a feature missing in a larger share of the train split than this, or constant in it, is dropped
+    max_null_share: float
+
+    @property
+    def path(self) -> str:
+        return f"{ML_DIR}/{self.name}"
+
+    @property
+    def model_path(self) -> str:
+        return f"{ML_DIR}/models/{self.name}"
+
+
+# --- Task 2: the feature pipeline for hourly zone demand -----------------------------------
+
+# US federal holidays of 2024; extend the list when the data reaches another year
+HOLIDAYS = ("2024-01-01", "2024-01-15", "2024-02-19", "2024-05-27", "2024-06-19", "2024-07-04",
+            "2024-09-02", "2024-10-14", "2024-11-11", "2024-11-28", "2024-12-25")
+
+HOURLY_ZONE_DEMAND_FEATURES = FeaturePipelineConfig(
+    name="hourly_zone_demand_features",
+
+    calendar_features={
+        "hour_of_day": "hour(pickup_hour)",
+        "day_of_week": "dayofweek(pickup_hour)",  # 1 = Sunday, 7 = Saturday
+        "month": "month(pickup_hour)",
+        "is_weekend": "CAST(dayofweek(pickup_hour) IN (1, 7) AS DOUBLE)",
+        "is_holiday": "CAST(to_date(pickup_hour) IN ({}) AS DOUBLE)".format(
+            ", ".join(f"DATE '{day}'" for day in HOLIDAYS)),
+    },
+    # the hour and the weekday as codes: demand is not a straight line in either
+    categorical_calendar=("hour_of_day", "day_of_week"),
+    binary_features=("is_weekend", "is_holiday"),
+
+    # the lags run from 0 in a quiet zone to several hundred in Midtown
+    log_features=tuple(HOURLY_ZONE_DEMAND.lag_columns),
+    max_null_share=0.5,
+)
+
+FEATURE_PIPELINE = HOURLY_ZONE_DEMAND_FEATURES
+
+# the plan, what the fitted stages learned, the feature layout and the per-source probe
+FEATURE_MANIFEST_PATH = "feature_pipeline_week_4.json"

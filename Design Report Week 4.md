@@ -114,3 +114,105 @@ The trips and the zone lookup carry almost all the information. Demand is multip
 - **Rebuilding from an older version gives the same dataset.** We rebuilt it from version 0 of the integrated table (before the Week 3 update) and obtained exactly the same 486,809 rows, since the update only added April.
 - **Tests.** `tests/test_training_dataset.py` covers the zero-filling, the lags, the quarantined pickups, the week-aligned splits, the window and the time-zone behaviour.
 - **What Task 2 gets.** `ml_config.py` lists the categorical columns (`pulocationid`, `pickup_borough`, `pickup_service_zone`, `coco`). The manifest's `columns` section describes every column's role and source. The feature pipeline derives the calendar features from `pickup_hour`, encodes the categorical columns, imputes and scales the numeric ones, and fits all of it on the train split only.
+
+## Task 2. Build a Reusable Feature Engineering Pipeline
+
+### The pipeline
+
+The input is the Task 1 dataset, which is itself generated from the Week 1 integrated table. `feature_pipeline.py` turns it into one `features` vector per row with a Spark ML `Pipeline` of six stages:
+
+| # | Stage | Spark ML | What it does | Learns from train |
+| --- | --- | --- | --- | --- |
+| 1 | calendar | `SQLTransformer` | derives `hour_of_day`, `day_of_week`, `month`, `is_weekend` and `is_holiday` (US federal holidays) from `pickup_hour` | – |
+| 2 | prepare | `SQLTransformer` | `log1p` of the three lags; a 0/1 `<column>_missing` flag for every quantity that has NULLs in the train split | – |
+| 3 | impute | `Imputer` | a missing quantity becomes the train split's median | medians |
+| 4 | encode | `StringIndexer` + `OneHotEncoder` | a code becomes one indicator per category; NULL or a category never seen in training becomes all zeros | categories |
+| 5 | scale | `VectorAssembler` + `StandardScaler` | quantities to mean 0 and standard deviation 1; indicators and flags are not scaled | means, standard deviations |
+| 6 | assemble | `VectorAssembler` | scaled quantities, indicators and flags → `features` (293 slots) | – |
+
+**The plan.** Which column goes through which stage is not written in the code. `plan_features` reads each column's kind from `ml_config.py`:
+
+- `categorical_features` for the dataset's codes and `categorical_calendar` for the derived ones;
+- `binary_features` for the flags;
+- `log_features` for the skewed counts;
+- every other column is a quantity.
+
+It then profiles the train split, and a feature missing in more than half of it, or constant in it, is dropped and reported. `build_feature_pipeline` turns this plan into the stages.
+
+**Fitting.** Every estimator (imputer, indexer, scaler) is fitted on the train split only, so the validation and test weeks influence neither the medians nor the scaling nor the categories. On our data:
+
+- fitting takes 4.6 s, and transforming and writing all 486,809 rows 5.3 s;
+- the feature dataset (`output_data/ml/hourly_zone_demand_features`, Delta, partitioned by `split`) takes 10 MB;
+- the fitted pipeline (`output_data/ml/models/hourly_zone_demand_features`) takes 156 KB and loads with `PipelineModel.load`.
+
+`feature_pipeline_week_4.json` records the plan, every learned value and the name of every slot of the vector.
+
+**Removing unnecessary attributes** happens at two levels:
+
+- _Features the training data cannot teach are dropped by the plan._ On our data nothing qualifies. A narrower window would drop `month` as constant, and adding snow depth (`snwd`, never reported in Q1) to the dataset would drop it as missing (the tests cover both cases).
+- _Columns a model does not need are removed from the feature dataset._ Of the 16 input columns and the 36 intermediate ones, it keeps only the row's keys (`pickup_hour`, `pulocationid`), the target, the split and `features`.
+
+### Why each feature was selected
+
+| Feature | Representation | Slots | Why |
+| --- | --- | --- | --- |
+| `trip_count_lag_1h`, `_24h`, `_168h` | `log1p`, missing flag, median, scaled | 2 each | the zone's current level of demand, and its value at the same hour yesterday and last week |
+| `pulocationid` (pickup zone) | one-hot | 223 | where a trip starts decides the order of magnitude of demand |
+| `pickup_borough`, `pickup_service_zone` | one-hot | 5, 4 | let similar zones share what they learn (Manhattan, Yellow Zone, Airports) |
+| `hour_of_day`, `day_of_week` | derived, one-hot | 24, 7 | the daily and weekly rhythm; codes, because demand is not a straight line in either (a trough at 4 am, a peak at 6 pm) |
+| `is_weekend`, `is_holiday` | derived flags | 1 each | weekend and holiday behaviour in one slot; the holiday list is configuration |
+| `month` | derived quantity, scaled | 1 | seasonality and trend; weak with a single quarter, useful once the data spans a year |
+| `temp`, `rhum`, `prcp`, `wspd`, `pres` | median, scaled (`prcp` also flagged) | 1 (2) | the conditions of the hour |
+| `coco` | one-hot | 14 | the weather condition is a code (rain, snow, fog), not a quantity |
+| `pm25` | median, scaled | 1 | air quality, the Week 2 question |
+
+A dropoff zone, the assignment's other location example, does not exist in this problem: a count of pickups per zone and hour has no dropoff (Task 1).
+
+### Which features required the most preprocessing
+
+- **The lags: four steps each.**
+  - `log1p`, because they run from 0 to 791 with a mean of 18, and one busy zone would otherwise dominate every distance or gradient.
+  - A missing flag, because their first hours have no history (11% of `lag_168h` in the train split).
+  - Median imputation: the median of a log-lag is 0, since most zone-hours are quiet, and without the flag a missing week would look like a quiet one.
+  - Scaling.
+- **Precipitation: three steps.** A flag, imputation (median 0.0 mm) and scaling, because the station did not report it in 7.9% of the training hours.
+- **The pickup zone: two steps, but the biggest output.** Indexing and one-hot encoding turn it into 223 of the 293 slots (76%). The indexer's `keep` setting is what lets a zone that appears after training pass through as all zeros instead of failing the job.
+- **The calendar features: the most work upstream.** They look cheap here, but `pickup_hour` is only a correct local hour because Task 1 built it independently of Spark's session time zone.
+
+### Which datasets contributed the most valuable features
+
+To answer this with the features themselves, the pipeline fits a probe: a random forest (30 trees, depth 10) on the train split. Its importances are summed per source dataset:
+
+| Source | Importance | Strongest slots |
+| --- | --- | --- |
+| Trips, demand history (lags) | 84.5% | `lag_1h` 39.4%, `lag_24h` 26.7%, `lag_168h` 18.3% |
+| Taxi zones | 13.0% | `service_zone = Yellow Zone` 3.7%, `borough = Manhattan` 2.8%, `service_zone = Boro Zone` 2.4%, `service_zone = Airports` 1.0%, `pulocationid = 161` (Midtown Center) 0.9% |
+| Trips, pickup time (calendar) | 1.8% | |
+| Weather | 0.6% | |
+| Air quality | 0.1% | |
+
+The trips and the zone lookup carry nearly everything, which confirms the Task 1 signal analysis. The calendar looks small only because the lags already contain it: `lag_24h` and `lag_168h` are the same hour yesterday and last week. Tree importances also share credit among correlated features. Weather and PM2.5 are one reading per hour for the whole city, and add little at the zone level.
+
+The probe scores R² 0.930 on the validation weeks (RMSE 15.6, MAE 4.6 trips). It is untuned and only shows that the features can be learned from. It is also below the 0.946 that the zone × hour-of-week average from Task 1 reaches on its own, which is the baseline the Task 3 model has to beat.
+
+What the platform contributed is less visible but decisive:
+
+- the trips behind the lags are validated and deduplicated;
+- every zone ID references the lookup;
+- weather and air quality arrive already aligned to the hour.
+
+### How the pipeline supports future extensions
+
+- **A new feature is a line of configuration.** Once the platform integrates a source (Weeks 1–3: declared schema, validation, join), its column is listed in `ml_config.py` (`hourly_features` or `zone_features`). If it is a code or a skewed count, it is also listed as categorical or in `log_features`. The plan routes it to the right stages; `test_a_new_feature_is_a_line_of_configuration` checks this. A calendar feature is one SQL expression in `calendar_features`.
+- **Unusable features do not break the pipeline.** A column that is empty or constant in the training window (such as `snwd` in Q1 2024) is dropped and reported, instead of crashing the imputer or wasting a slot.
+- **New categories at prediction time.** A zone or weather code never seen in training encodes as all zeros. After retraining it gets its own slot. Categories are ordered alphabetically, not by frequency, so a slot does not move when a zone becomes busier.
+- **Models plug in behind it.** Every stage is a standard Spark ML stage, so the fitted pipeline saves and loads without custom code (tested). Task 3 appends any MLlib regressor to `feature_pipeline(train)` and fits both together.
+- **Retraining refits the same stages on a new train split.** The plan is re-profiled, and the medians, scaling and categories are relearned; no code changes.
+- **A new kind of transformation is one stage in `build_feature_pipeline`.** The most promising one is a zone × hour-of-week average learned on the train split (target encoding), given that it alone explains 94.6% of the validation variance in Task 1.
+- **Other prediction problems** get their own pair of `TrainingDatasetConfig` and `FeaturePipelineConfig`. The code names only the keys `pickup_hour` and `pulocationid`.
+
+### Trade-offs
+
+- **One-hot encoding of 223 zones** gives a sparse vector of 293 slots, which is fine for linear models and trees at this size. With thousands of categories we would switch to target or hash encoding.
+- **Fitting only on the train split** keeps the validation and test measurements honest. Once a model is chosen, refitting on train and validation together is a decision for Task 3.
+- **The probe adds about 70 seconds** to a run of 20. `--no-probe` skips it when only the features are needed.
