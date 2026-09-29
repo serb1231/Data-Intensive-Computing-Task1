@@ -1,0 +1,276 @@
+{
+  "generated_at": "2026-09-29T16:41:21",
+  "build_seconds": 27.04,
+  "dataset": {
+    "name": "hourly_zone_demand",
+    "path": "output_data/ml/hourly_zone_demand",
+    "delta_version": 4,
+    "rows": 486809
+  },
+  "sources": {
+    "integrated_taxi_trips": {
+      "path": "output_data/integrated_taxi_trips",
+      "version": 1
+    },
+    "taxi_zones": {
+      "path": "output_data/taxi_zones",
+      "version": 0
+    },
+    "quarantine/trip_data": {
+      "path": "output_data/quarantine/trip_data",
+      "version": 1
+    }
+  },
+  "window": {
+    "start": "2024-01-01",
+    "end": "2024-04-01",
+    "months": "2024-01,2024-02,2024-03",
+    "hours_expected": 2184,
+    "hours_with_trips": 2183
+  },
+  "demand": {
+    "validated_trips": 8480394,
+    "quarantined_pickups_counted": 731797,
+    "pickups": 9212191,
+    "pickups_in_selected_zones": 9180034,
+    "coverage": 0.99651,
+    "zones_with_pickups": 261,
+    "zones_selected": 223
+  },
+  "splits": {
+    "train": {
+      "start": "2024-01-01",
+      "end": "2024-03-04",
+      "weeks": 9.0,
+      "rows": 337176,
+      "zones": 223,
+      "hours": 1512,
+      "first_hour": "2024-01-01 00:00:00",
+      "last_hour": "2024-03-03 23:00:00",
+      "trips": 6071798,
+      "target_mean": 18.008,
+      "target_stddev": 52.184,
+      "target_max": 791,
+      "target_zero_share": 0.5543,
+      "null_share": {
+        "prcp": 0.0794,
+        "trip_count_lag_1h": 0.0007,
+        "trip_count_lag_24h": 0.0159,
+        "trip_count_lag_168h": 0.1111
+      }
+    },
+    "validation": {
+      "start": "2024-03-04",
+      "end": "2024-03-18",
+      "weeks": 2.0,
+      "rows": 74705,
+      "zones": 223,
+      "hours": 335,
+      "first_hour": "2024-03-04 00:00:00",
+      "last_hour": "2024-03-17 23:00:00",
+      "trips": 1574328,
+      "target_mean": 21.074,
+      "target_stddev": 58.979,
+      "target_max": 702,
+      "target_zero_share": 0.4998,
+      "null_share": {
+        "prcp": 0.0776,
+        "trip_count_lag_1h": 0.003,
+        "trip_count_lag_24h": 0.003,
+        "trip_count_lag_168h": 0.003
+      }
+    },
+    "test": {
+      "start": "2024-03-18",
+      "end": "2024-04-01",
+      "weeks": 2.0,
+      "rows": 74928,
+      "zones": 223,
+      "hours": 336,
+      "first_hour": "2024-03-18 00:00:00",
+      "last_hour": "2024-03-31 23:00:00",
+      "trips": 1533908,
+      "target_mean": 20.472,
+      "target_stddev": 56.942,
+      "target_max": 711,
+      "target_zero_share": 0.4839,
+      "null_share": {
+        "prcp": 0.0565
+      }
+    }
+  },
+  "columns": {
+    "pickup_hour": {
+      "role": "key",
+      "source": "integrated_taxi_trips.tpep_pickup_datetime, local hour",
+      "kind": "timestamp"
+    },
+    "pulocationid": {
+      "role": "key, feature",
+      "source": "taxi_zones.locationid",
+      "kind": "categorical"
+    },
+    "trip_count": {
+      "role": "target",
+      "kind": "count",
+      "source": "integrated_taxi_trips, quarantine/trip_data: pickups per zone and hour"
+    },
+    "pickup_borough": {
+      "role": "feature",
+      "source": "taxi_zones.borough",
+      "kind": "categorical"
+    },
+    "pickup_service_zone": {
+      "role": "feature",
+      "source": "taxi_zones.service_zone",
+      "kind": "categorical"
+    },
+    "temp": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.temp (weather)",
+      "kind": "numeric"
+    },
+    "rhum": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.rhum (weather)",
+      "kind": "numeric"
+    },
+    "prcp": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.prcp (weather)",
+      "kind": "numeric"
+    },
+    "wspd": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.wspd (weather)",
+      "kind": "numeric"
+    },
+    "pres": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.pres (weather)",
+      "kind": "numeric"
+    },
+    "coco": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.coco (weather)",
+      "kind": "categorical"
+    },
+    "pm25": {
+      "role": "feature",
+      "source": "integrated_taxi_trips.pm25 (air_quality)",
+      "kind": "numeric"
+    },
+    "trip_count_lag_1h": {
+      "role": "feature",
+      "source": "trip_count, 1 h earlier",
+      "kind": "count"
+    },
+    "trip_count_lag_24h": {
+      "role": "feature",
+      "source": "trip_count, 24 h earlier",
+      "kind": "count"
+    },
+    "trip_count_lag_168h": {
+      "role": "feature",
+      "source": "trip_count, 168 h earlier",
+      "kind": "count"
+    },
+    "split": {
+      "role": "split",
+      "source": "pickup_hour",
+      "kind": "categorical"
+    }
+  },
+  "signal": {
+    "structure": {
+      "zone": 0.5861,
+      "borough": 0.2232,
+      "hour_of_week": 0.0372,
+      "zone_x_hour_of_week": 0.9575,
+      "zone_x_hour_of_week_r2_on_validation": 0.9464
+    },
+    "correlation": {
+      "temp": {
+        "r_target": 0.0132,
+        "r_residual": 0.0145
+      },
+      "rhum": {
+        "r_target": -0.0071,
+        "r_residual": -0.0304
+      },
+      "prcp": {
+        "r_target": -0.0146,
+        "r_residual": -0.0155
+      },
+      "wspd": {
+        "r_target": 0.0074,
+        "r_residual": -0.0037
+      },
+      "pres": {
+        "r_target": 0.0065,
+        "r_residual": 0.0447
+      },
+      "pm25": {
+        "r_target": 0.0093,
+        "r_residual": 0.0148
+      },
+      "trip_count_lag_1h": {
+        "r_target": 0.9562,
+        "r_residual": 0.1318
+      },
+      "trip_count_lag_24h": {
+        "r_target": 0.9172,
+        "r_residual": 0.0623
+      },
+      "trip_count_lag_168h": {
+        "r_target": 0.9624,
+        "r_residual": 0.1068
+      },
+      "coco": {
+        "eta_squared_residual": 0.0043
+      }
+    }
+  },
+  "config": {
+    "name": "hourly_zone_demand",
+    "target": "trip_count",
+    "window_start": null,
+    "window_end": "2024-04-01",
+    "validation_weeks": 2,
+    "test_weeks": 2,
+    "hourly_features": {
+      "weather": [
+        "temp",
+        "rhum",
+        "prcp",
+        "wspd",
+        "pres",
+        "coco"
+      ],
+      "air_quality": [
+        "pm25"
+      ]
+    },
+    "zone_features": {
+      "borough": "pickup_borough",
+      "service_zone": "pickup_service_zone"
+    },
+    "categorical_features": [
+      "pulocationid",
+      "pickup_borough",
+      "pickup_service_zone",
+      "coco"
+    ],
+    "zone_filter": "service_zone <> 'N/A'",
+    "min_zone_trips_per_day": 1.0,
+    "count_quarantined_for": [
+      "not_null(passenger_count)",
+      "positive(passenger_count)"
+    ],
+    "lag_hours": [
+      1,
+      24,
+      168
+    ]
+  }
+}

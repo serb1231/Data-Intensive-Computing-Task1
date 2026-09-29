@@ -19,6 +19,7 @@ Scripts you run, in the order of section 2 (the step numbers refer to it):
 | `validation.py` | 3 | The validation engine and quarantine; `python validation.py` prints the validation report (Task 4) | 14 |
 | `refresh_manager.py` | 3 | Plans and runs the refresh of only the data products that new data affects (Task 2) | 16 |
 | `evaluate_platform.py` | 3 | Measures update/refresh time, validation and monitoring overhead, storage (Task 5) | 17 |
+| `training_dataset.py` | 4 | Generates the training dataset for hourly taxi demand from the Delta tables (Task 1) | 18 |
 
 Configuration and support files, not run directly:
 
@@ -26,15 +27,17 @@ Configuration and support files, not run directly:
 | --- | --- |
 | `schemas.py` | Declared schema of every source, including the Week 3 columns `humidity` and `aqi` |
 | `validation_rules.py` | The validation rules of every dataset, as configuration (add a rule here) |
-| `tests/` | `test_validation.py` (Task 4 fault injection), `test_refresh.py` (Task 2 refresh planner); step 15 |
+| `ml_config.py` | The ML pipeline's configuration: target, features, window, lags and splits of the training dataset |
+| `tests/` | `test_validation.py` (Week 3 Task 4 fault injection), `test_refresh.py` (Week 3 Task 2 refresh planner), `test_training_dataset.py` (Week 4 Task 1); step 15 |
 | `readParquet.py` | Exploratory duplicate analysis from Week 1; not part of the pipeline |
 | `environment.yml`, `environment_mac.yml` | Conda environments |
 
 Reports: `Design Report Week N.md` and `Benchmark Report Week 1/2.md` for each week, and
 `Evaluation Report Week 3.md` for Week 3, Task 5. Raw measurements are in
-`benchmark_results_week_1.json` and `evaluation_results_week_3.json`. `Architecture.md`
-describes the Week 1 pipeline. Generated data goes to `output_data/`: the curated tables,
-`data_products/`, `monitoring/` and `quarantine/`, all Delta tables and git-ignored.
+`benchmark_results_week_1.json`, `evaluation_results_week_3.json` and, for the Week 4 training
+dataset, `training_dataset_week_4.json`. `Architecture.md` describes the Week 1 pipeline.
+Generated data goes to `output_data/`: the curated tables, `data_products/`, `monitoring/`,
+`quarantine/` and `ml/`, all Delta tables and git-ignored.
 
 ## 1. Prerequisites
 
@@ -287,6 +290,28 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    Raw measurements are written to `evaluation_results_week_3.json`; results and discussion
    are in `Evaluation Report Week 3.md`. The trials are recorded in the monitoring tables with
    `pipeline = 'evaluation:<config>'`.
+
+18. Generate the Week 4 training dataset (Task 1). It needs the initial load (step 6); the Week 3
+   update may or may not be loaded, because the window ends with March:
+
+   ```bash
+   python training_dataset.py                     # the dataset declared in ml_config.py, ~30 seconds
+   python training_dataset.py --end 2024-03-18    # another window; the splits move with its end
+   python training_dataset.py --source-version 0  # rebuild from an older version of the integrated table
+   ```
+
+   It writes one row per (pickup zone, local hour) to `output_data/ml/hourly_zone_demand`, a Delta
+   table partitioned by `split`: the target `trip_count`, the zone's borough and service zone, the
+   weather and PM2.5 of the hour, and the zone's demand 1, 24 and 168 hours earlier. The three splits
+   are consecutive whole weeks (train, then validation, then test). Read one with
+   `spark.read.format("delta").load("output_data/ml/hourly_zone_demand").where("split = 'train'")`.
+
+   What was built is recorded twice: in the Delta commit (`DESCRIBE HISTORY` on the table) and in
+   `training_dataset_week_4.json`. The record lists the source tables and the Delta versions read,
+   the window and split boundaries, the size of each split, the NULL share of every feature, a
+   dictionary of the columns and a measure of how much each source tells about demand. To change
+   the target, a feature, a lag, the window or the splits, edit `ml_config.py`; the builder does not
+   change. The design is described in `Design Report Week 4.md` (Task 1).
 
 ## 3. Apple Silicon (macOS arm64) notes
 
