@@ -21,6 +21,7 @@ Scripts you run, in the order of section 2 (the step numbers refer to it):
 | `evaluate_platform.py` | 3 | Measures update/refresh time, validation and monitoring overhead, storage (Task 5) | 17 |
 | `training_dataset.py` | 4 | Generates the training dataset for hourly taxi demand from the Delta tables (Task 1) | 18 |
 | `feature_pipeline.py` | 4 | The reusable feature engineering pipeline: fits it on the train split, writes the feature dataset (Task 2) | 19 |
+| `train_model.py` | 4 | Trains, evaluates and saves the demand model on top of the Task 2 pipeline (Task 3) | 20 |
 
 Configuration and support files, not run directly:
 
@@ -36,7 +37,7 @@ Configuration and support files, not run directly:
 Reports: `Design Report Week N.md` and `Benchmark Report Week 1/2.md` for each week, and
 `Evaluation Report Week 3.md` for Week 3, Task 5. Raw measurements are in
 `benchmark_results_week_1.json`, `evaluation_results_week_3.json` and, for Week 4,
-`training_dataset_week_4.json` and `feature_pipeline_week_4.json`. `Architecture.md` describes
+`training_dataset_week_4.json`, `feature_pipeline_week_4.json` and `model_week_4.json`. `Architecture.md` describes
 the Week 1 pipeline.
 Generated data goes to `output_data/`: the curated tables, `data_products/`, `monitoring/`,
 `quarantine/` and `ml/`, all Delta tables and git-ignored.
@@ -350,6 +351,13 @@ We manage dependencies using Conda. To guarantee the pipeline runs smoothly, rec
    A new feature needs one line in `ml_config.py`: its name in the dataset section, and its kind
    (code, flag, count to log-transform) if it is not a plain quantity. A feature that is mostly
    missing or constant in the train split is dropped automatically and reported.
+
+20. Train, evaluate and save the Week 4 model (Task 3). It needs the training dataset (step 18);
+   step 19 is not required, because the model refits those stages itself:
+
+   ```bash
+   python train_model.py                   # about 2 minutes
+   ```
 
 ## 3. Apple Silicon (macOS arm64) notes
 

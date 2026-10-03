@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-10-03T18:29:32",
+  "fit_seconds": 90.37,
+  "dataset": {
+    "path": "output_data/ml/hourly_zone_demand",
+    "delta_version": 20,
+    "target": "trip_count"
+  },
+  "model": {
+    "path": "output_data/ml/models/hourly_zone_demand_model",
+    "regressor": "GBTRegressor",
+    "params": {
+      "maxIter": 50,
+      "maxDepth": 5,
+      "seed": 42
+    },
+    "feature_count": 293
+  },
+  "dropped_features": {},
+  "scores": {
+    "train": {
+      "rmse": 12.0804,
+      "mae": 3.9978,
+      "r2": 0.9484
+    },
+    "validation": {
+      "rmse": 14.6998,
+      "mae": 4.705,
+      "r2": 0.9401
+    },
+    "test": {
+      "rmse": 14.6066,
+      "mae": 4.7288,
+      "r2": 0.9364
+    }
+  }
+}

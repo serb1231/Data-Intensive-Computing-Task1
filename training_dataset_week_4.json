@@ -1,25 +1,24 @@
 {
-  "generated_at": "2026-10-03T16:28:30",
-  "build_seconds": 25.32,
+  "generated_at": "2026-10-03T16:38:25",
+  "build_seconds": 25.58,
   "dataset": {
     "name": "hourly_zone_demand",
     "path": "output_data/ml/hourly_zone_demand",
-    "delta_version": 19,
+    "delta_version": 20,
     "rows": 486809
   },
   "sources": {
     "integrated_taxi_trips": {
       "path": "output_data/integrated_taxi_trips",
-      "version": 0
+      "version": 3
     },
     "taxi_zones": {
       "path": "output_data/taxi_zones",
-      "version": 7
+      "version": 8
     },
     "quarantine/trip_data": {
       "path": "output_data/quarantine/trip_data",
-      "version": 0,
-      "note": "no commit from 2026-09-18 20:39:32.030000 or earlier, when integrated_taxi_trips v0 was written; read at v0, its oldest"
+      "version": 1
     }
   },
   "window": {
@@ -30,11 +29,11 @@
     "hours_with_trips": 2183
   },
   "demand": {
-    "validated_trips": 8480520,
+    "validated_trips": 8648273,
     "quarantined_pickups_counted": 731797,
-    "pickups": 9212317,
-    "pickups_in_selected_zones": 9180159,
-    "coverage": 0.99651,
+    "pickups": 9380070,
+    "pickups_in_selected_zones": 9347279,
+    "coverage": 0.9965,
     "zones_with_pickups": 261,
     "zones_selected": 223
   },
@@ -48,10 +47,10 @@
       "hours": 1512,
       "first_hour": "2024-01-01 00:00:00",
       "last_hour": "2024-03-03 23:00:00",
-      "trips": 6071872,
-      "target_mean": 18.008,
-      "target_stddev": 52.184,
-      "target_max": 791,
+      "trips": 6184961,
+      "target_mean": 18.343,
+      "target_stddev": 53.167,
+      "target_max": 806,
       "target_zero_share": 0.5542,
       "null_share": {
         "prcp": 0.0794,
@@ -69,10 +68,10 @@
       "hours": 335,
       "first_hour": "2024-03-04 00:00:00",
       "last_hour": "2024-03-17 23:00:00",
-      "trips": 1574342,
-      "target_mean": 21.074,
-      "target_stddev": 58.979,
-      "target_max": 702,
+      "trips": 1602160,
+      "target_mean": 21.446,
+      "target_stddev": 60.045,
+      "target_max": 710,
       "target_zero_share": 0.4998,
       "null_share": {
         "prcp": 0.0776,
@@ -90,10 +89,10 @@
       "hours": 336,
       "first_hour": "2024-03-18 00:00:00",
       "last_hour": "2024-03-31 23:00:00",
-      "trips": 1533945,
-      "target_mean": 20.472,
-      "target_stddev": 56.943,
-      "target_max": 711,
+      "trips": 1560158,
+      "target_mean": 20.822,
+      "target_stddev": 57.938,
+      "target_max": 729,
       "target_zero_share": 0.4839,
       "null_share": {
         "prcp": 0.0565
@@ -184,11 +183,11 @@
   },
   "signal": {
     "structure": {
-      "zone": 0.5861,
-      "borough": 0.2232,
+      "zone": 0.5862,
+      "borough": 0.2231,
       "hour_of_week": 0.0372,
-      "zone_x_hour_of_week": 0.9575,
-      "zone_x_hour_of_week_r2_on_validation": 0.9464
+      "zone_x_hour_of_week": 0.9574,
+      "zone_x_hour_of_week_r2_on_validation": 0.9466
     },
     "correlation": {
       "temp": {
@@ -197,35 +196,35 @@
       },
       "rhum": {
         "r_target": -0.0071,
-        "r_residual": -0.0304
+        "r_residual": -0.0303
       },
       "prcp": {
         "r_target": -0.0146,
         "r_residual": -0.0155
       },
       "wspd": {
-        "r_target": 0.0074,
-        "r_residual": -0.0037
+        "r_target": 0.0073,
+        "r_residual": -0.0038
       },
       "pres": {
         "r_target": 0.0065,
-        "r_residual": 0.0447
+        "r_residual": 0.0446
       },
       "pm25": {
         "r_target": 0.0093,
-        "r_residual": 0.0148
+        "r_residual": 0.0149
       },
       "trip_count_lag_1h": {
-        "r_target": 0.9562,
-        "r_residual": 0.1318
+        "r_target": 0.9561,
+        "r_residual": 0.1316
       },
       "trip_count_lag_24h": {
-        "r_target": 0.9172,
-        "r_residual": 0.0623
+        "r_target": 0.9173,
+        "r_residual": 0.0624
       },
       "trip_count_lag_168h": {
         "r_target": 0.9624,
-        "r_residual": 0.1068
+        "r_residual": 0.1066
       },
       "coco": {
         "eta_squared_residual": 0.0043
