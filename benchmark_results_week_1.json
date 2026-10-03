@@ -1,5 +1,5 @@
 {
-    "row_count": 8480540,
+    "row_count": 12003213,
     "warmup_runs": 2,
     "timed_runs": 5,
     "strategies": {
@@ -8,59 +8,59 @@
                 "year",
                 "month"
             ],
-            "ingestion_seconds": 15.21,
-            "storage_bytes": 474544133,
-            "storage_mb": 452.6,
-            "generated_files": 14,
+            "ingestion_seconds": 14.67,
+            "storage_bytes": 669271289,
+            "storage_mb": 638.3,
+            "generated_files": 19,
             "partitions": 8,
-            "avg_file_kb": 33101.6,
+            "avg_file_kb": 34399.2,
             "queries": {
                 "trips_per_borough": {
-                    "cold_seconds": 1.576,
-                    "warm_median_seconds": 0.502,
-                    "warm_min_seconds": 0.489,
-                    "warm_max_seconds": 0.559,
-                    "warm_spread_seconds": 0.07,
+                    "cold_seconds": 1.293,
+                    "warm_median_seconds": 0.548,
+                    "warm_min_seconds": 0.491,
+                    "warm_max_seconds": 0.613,
+                    "warm_spread_seconds": 0.122,
                     "all_runs_seconds": [
-                        1.576,
-                        0.539,
-                        0.492,
-                        0.559,
-                        0.533,
-                        0.489,
-                        0.502
+                        1.293,
+                        0.669,
+                        0.613,
+                        0.561,
+                        0.548,
+                        0.491,
+                        0.531
                     ]
                 },
                 "avg_duration_per_day": {
-                    "cold_seconds": 0.591,
-                    "warm_median_seconds": 0.504,
-                    "warm_min_seconds": 0.465,
-                    "warm_max_seconds": 0.968,
-                    "warm_spread_seconds": 0.503,
+                    "cold_seconds": 0.658,
+                    "warm_median_seconds": 0.568,
+                    "warm_min_seconds": 0.541,
+                    "warm_max_seconds": 0.691,
+                    "warm_spread_seconds": 0.15,
                     "all_runs_seconds": [
-                        0.591,
-                        0.6,
-                        0.968,
-                        0.543,
-                        0.48,
-                        0.504,
-                        0.465
+                        0.658,
+                        0.573,
+                        0.691,
+                        0.568,
+                        0.574,
+                        0.541,
+                        0.542
                     ]
                 },
                 "avg_fare_per_borough": {
-                    "cold_seconds": 0.615,
-                    "warm_median_seconds": 0.51,
-                    "warm_min_seconds": 0.481,
-                    "warm_max_seconds": 0.528,
-                    "warm_spread_seconds": 0.048,
+                    "cold_seconds": 0.623,
+                    "warm_median_seconds": 0.57,
+                    "warm_min_seconds": 0.53,
+                    "warm_max_seconds": 0.631,
+                    "warm_spread_seconds": 0.101,
                     "all_runs_seconds": [
-                        0.615,
-                        0.532,
-                        0.528,
-                        0.518,
-                        0.51,
-                        0.493,
-                        0.481
+                        0.623,
+                        0.559,
+                        0.552,
+                        0.598,
+                        0.57,
+                        0.53,
+                        0.631
                     ]
                 }
             }
@@ -71,59 +71,59 @@
                 "month",
                 "day"
             ],
-            "ingestion_seconds": 14.09,
-            "storage_bytes": 471438156,
-            "storage_mb": 449.6,
-            "generated_files": 278,
-            "partitions": 96,
-            "avg_file_kb": 1656.1,
+            "ingestion_seconds": 15.55,
+            "storage_bytes": 665022167,
+            "storage_mb": 634.2,
+            "generated_files": 357,
+            "partitions": 104,
+            "avg_file_kb": 1819.1,
             "queries": {
                 "trips_per_borough": {
-                    "cold_seconds": 0.634,
-                    "warm_median_seconds": 0.453,
-                    "warm_min_seconds": 0.445,
-                    "warm_max_seconds": 0.468,
-                    "warm_spread_seconds": 0.023,
+                    "cold_seconds": 0.642,
+                    "warm_median_seconds": 0.547,
+                    "warm_min_seconds": 0.542,
+                    "warm_max_seconds": 0.605,
+                    "warm_spread_seconds": 0.063,
                     "all_runs_seconds": [
-                        0.634,
-                        0.464,
-                        0.453,
-                        0.445,
-                        0.468,
-                        0.453,
-                        0.46
+                        0.642,
+                        0.592,
+                        0.605,
+                        0.555,
+                        0.543,
+                        0.547,
+                        0.542
                     ]
                 },
                 "avg_duration_per_day": {
-                    "cold_seconds": 0.484,
-                    "warm_median_seconds": 0.438,
-                    "warm_min_seconds": 0.412,
-                    "warm_max_seconds": 0.838,
-                    "warm_spread_seconds": 0.426,
+                    "cold_seconds": 0.654,
+                    "warm_median_seconds": 0.523,
+                    "warm_min_seconds": 0.507,
+                    "warm_max_seconds": 0.687,
+                    "warm_spread_seconds": 0.18,
                     "all_runs_seconds": [
-                        0.484,
-                        0.419,
-                        0.421,
-                        0.573,
-                        0.838,
-                        0.438,
-                        0.412
+                        0.654,
+                        0.528,
+                        0.52,
+                        0.523,
+                        0.53,
+                        0.507,
+                        0.687
                     ]
                 },
                 "avg_fare_per_borough": {
-                    "cold_seconds": 0.598,
-                    "warm_median_seconds": 0.476,
-                    "warm_min_seconds": 0.465,
-                    "warm_max_seconds": 0.487,
-                    "warm_spread_seconds": 0.022,
+                    "cold_seconds": 0.7,
+                    "warm_median_seconds": 0.541,
+                    "warm_min_seconds": 0.531,
+                    "warm_max_seconds": 0.555,
+                    "warm_spread_seconds": 0.023,
                     "all_runs_seconds": [
-                        0.598,
-                        0.464,
-                        0.465,
-                        0.481,
-                        0.476,
-                        0.471,
-                        0.487
+                        0.7,
+                        0.593,
+                        0.541,
+                        0.555,
+                        0.54,
+                        0.554,
+                        0.531
                     ]
                 }
             }

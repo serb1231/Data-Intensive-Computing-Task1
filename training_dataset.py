@@ -302,10 +302,18 @@ def latest_version(spark: SparkSession, path: str) -> int:
     return int(spark.sql(f"DESCRIBE HISTORY {delta_sql_name(path)} LIMIT 1").first()["version"])
 
 
+def earliest_version(spark: SparkSession, path: str) -> int:
+    """The oldest version a Delta table still keeps in its history."""
+    return int(spark.sql(f"DESCRIBE HISTORY {delta_sql_name(path)}").agg(F.min("version")).first()[0])
+
+
 def version_at(spark: SparkSession, path: str, moment: datetime) -> int:
-    """The version a Delta table had at that moment: its last commit up to then."""
+    """The version a Delta table had at that moment: its last commit up to then.
+
+    None when no commit is that old, which means the table did not exist yet.
+    """
     history = spark.sql(f"DESCRIBE HISTORY {delta_sql_name(path)}")
-    return int(history.where(F.col("timestamp") <= F.lit(moment)).agg(F.max("version")).first()[0])
+    return history.where(F.col("timestamp") <= F.lit(moment)).agg(F.max("version")).first()[0]
 
 
 def read_version(spark: SparkSession, path: str, version: int) -> DataFrame:
@@ -313,21 +321,38 @@ def read_version(spark: SparkSession, path: str, version: int) -> DataFrame:
 
 
 def pin_sources(spark: SparkSession, config: TrainingDatasetConfig, integrated_version: int = None) -> dict:
-    """name -> (path, version) of every table the dataset is read from.
+    """name -> (path, version, note) of every table the dataset is read from.
 
     The integrated table is read at the requested version (default: the current one), and the other
     tables as they were when that version was committed, so an older dataset can be rebuilt exactly.
+    A table with no commit that old did not exist yet, or no longer keeps one: it is read at the
+    oldest version it still has, and the note says so, because that rebuild is an approximation.
     """
     paths = {"integrated_taxi_trips": INTEGRATED_PATH, "taxi_zones": TAXI_ZONES_PATH}
     if config.count_quarantined_for:
         paths["quarantine/trip_data"] = quarantine_path("Trip Data")
     if integrated_version is None:
-        return {name: (path, latest_version(spark, path)) for name, path in paths.items()}
+        return {name: (path, latest_version(spark, path), None) for name, path in paths.items()}
 
-    committed = spark.sql(f"DESCRIBE HISTORY {delta_sql_name(INTEGRATED_PATH)}") \
-        .where(f"version = {integrated_version}").first()["timestamp"]
-    return {name: (path, integrated_version if path == INTEGRATED_PATH else version_at(spark, path, committed))
-            for name, path in paths.items()}
+    commit = spark.sql(f"DESCRIBE HISTORY {delta_sql_name(INTEGRATED_PATH)}") \
+        .where(f"version = {integrated_version}").first()
+    if commit is None:
+        raise SystemExit(f"integrated_taxi_trips has no version {integrated_version}: its history keeps "
+                         f"{earliest_version(spark, INTEGRATED_PATH)} to {latest_version(spark, INTEGRATED_PATH)}")
+
+    pinned = {}
+    for name, path in paths.items():
+        if path == INTEGRATED_PATH:
+            pinned[name] = (path, integrated_version, None)
+            continue
+        version, note = version_at(spark, path, commit["timestamp"]), None
+        if version is None:
+            version = earliest_version(spark, path)
+            note = (f"no commit from {commit['timestamp']} or earlier, when integrated_taxi_trips "
+                    f"v{integrated_version} was written; read at v{version}, its oldest")
+            print(f"note: {name} {note}")
+        pinned[name] = (path, version, note)
+    return pinned
 
 
 def parse_args() -> argparse.Namespace:
@@ -353,8 +378,9 @@ def main() -> None:
 
     # the versions read are pinned, so the manifest names exactly what the dataset was built from
     pinned = pin_sources(spark, config, args.source_version)
-    tables = {name: read_version(spark, path, version) for name, (path, version) in pinned.items()}
-    sources = {name: {"path": path, "version": version} for name, (path, version) in pinned.items()}
+    tables = {name: read_version(spark, path, version) for name, (path, version, _) in pinned.items()}
+    sources = {name: {"path": path, "version": version, **({"note": note} if note else {})}
+               for name, (path, version, note) in pinned.items()}
 
     start, end, months = resolve_window(spark, tables["integrated_taxi_trips"], config)
     validation_start, test_start = split_boundaries(config, start, end)

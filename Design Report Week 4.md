@@ -216,3 +216,65 @@ What the platform contributed is less visible but decisive:
 - **One-hot encoding of 223 zones** gives a sparse vector of 293 slots, which is fine for linear models and trees at this size. With thousands of categories we would switch to target or hash encoding.
 - **Fitting only on the train split** keeps the validation and test measurements honest. Once a model is chosen, refitting on train and validation together is a decision for Task 3.
 - **The probe adds about 70 seconds** to a run of 20. `--no-probe` skips it when only the features are needed.
+
+## Task 3. Build a Reproducible ML Pipeline
+
+### The pipeline
+
+`train_model.py` is the whole of Task 3. It reads the current Delta version of the training dataset (Task 1), asks `feature_pipeline()` for the fitted-
+on-demand feature stages (Task 2), appends one regressor, and fits the two together.
+
+```python
+features, plan = feature_pipeline(train)
+regressor = GBTRegressor(featuresCol=FEATURES, labelCol=target, maxIter=50, maxDepth=5, seed=42)
+model = Pipeline(stages=features.getStages() + [regressor]).fit(train)
+```
+
+For the model, we went with a Gradient Boosted Tree. Since we're trying to predict demand (which is just a count), 
+trees handle this really well, especially when splitting up the data by hour and location. We made sure to only train  
+it on the training set.
+
+### Model evaluation
+
+Scored on the three splits of the same build (`model_week_4.json`, dataset v20):
+
+| Split | Weeks | RMSE | MAE | R² |
+| --- | --- | --- | --- | --- |
+| train | 9 | 12.08 | 4.00 | 0.948 |
+| validation | 2 | 14.70 | 4.71 | 0.940 |
+| test | 2 | 14.61 | 4.73 | 0.936 |
+
+The scores for the training, validation, and test sets all ended up being pretty close. This means the model isn't 
+overfitting—it actually works well on future data it hasn't seen before.
+
+Our average error was only about 4.7 pickups per hour. That's a really good result considering some zones get hundreds 
+of pickups in a single hour.
+
+### Which parts of the pipeline are reusable?
+
+The dataset builder, the feature stages, the plan and the split
+boundaries come from Tasks 1 and 2 unchanged; `train_model.py` contributes the regressor, the
+metrics and the manifest.
+
+### How can new features be incorporated?
+
+A new feature changes the size of the vector and nothing  else. Features that are empty or constant in the train split
+are still dropped by the plan and reported in `dropped_features`.
+
+### How is retraining supported?
+
+Retraining is running the same two commands again: `python training_dataset.py` rebuilds the
+dataset from the current Delta versions of the platform tables, and `python train_model.py` refits
+and overwrites the model.
+
+### How could the pipeline support multiple prediction tasks?
+
+A second prediction problem (trip duration, fare amount) is a second pair of `TrainingDatasetConfig`
+and `FeaturePipelineConfig` in `ml_config.py`: the target, its features and its splits. The three
+scripts read the configuration they are given, and the only column names in the code are the keys
+`pickup_hour` and `pulocationid`.
+
+### Trade-offs
+
+- **One model:** 50 trees of depth 5 with a fixed seed train in about 90 seconds. Tuning on the validation split would improve the numbers
+- **Predictions can be negative** the test rows show about -0.008 for an empty zone-hour

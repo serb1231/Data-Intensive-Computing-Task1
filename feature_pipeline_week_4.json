@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-29T17:05:22",
-  "fit_seconds": 4.59,
-  "transform_and_write_seconds": 5.27,
-  "probe_seconds": 69.3,
+  "generated_at": "2026-10-03T16:39:41",
+  "fit_seconds": 4.12,
+  "transform_and_write_seconds": 6.41,
+  "probe_seconds": 47.39,
   "input": {
     "path": "output_data/ml/hourly_zone_demand",
-    "delta_version": 4
+    "delta_version": 20
   },
   "output": {
     "path": "output_data/ml/hourly_zone_demand_features",
-    "delta_version": 0,
+    "delta_version": 11,
     "model_path": "output_data/ml/models/hourly_zone_demand_features",
     "rows": {
       "train": 337176,
@@ -145,7 +145,7 @@
       "prcp": 0.0,
       "wspd": 16.6,
       "pres": 1017.0,
-      "pm25": 5.8667,
+      "pm25": 5.88,
       "trip_count_lag_1h_log": 0.0,
       "trip_count_lag_24h_log": 0.0,
       "trip_count_lag_168h_log": 0.0,
@@ -177,16 +177,16 @@
         "std": 5.1664
       },
       "trip_count_lag_1h_log": {
-        "mean": 1.0536,
-        "std": 1.6168
+        "mean": 1.0592,
+        "std": 1.6236
       },
       "trip_count_lag_24h_log": {
-        "mean": 1.0365,
-        "std": 1.6096
+        "mean": 1.0419,
+        "std": 1.6164
       },
       "trip_count_lag_168h_log": {
-        "mean": 0.9293,
-        "std": 1.556
+        "mean": 0.9342,
+        "std": 1.5627
       },
       "month": {
         "mean": 1.5556,
@@ -225,30 +225,30 @@
   "probe": {
     "model": "RandomForestRegressor(numTrees=30, maxDepth=10, subsamplingRate=0.5, seed=42)",
     "importance_by_source": {
-      "trips: demand history": 0.8453,
-      "taxi_zones": 0.1302,
-      "trips: pickup time": 0.0175,
-      "weather": 0.0058,
-      "air_quality": 0.0012
+      "trips: demand history": 0.8431,
+      "taxi_zones": 0.1322,
+      "trips: pickup time": 0.018,
+      "weather": 0.0054,
+      "air_quality": 0.0013
     },
     "top_features": {
-      "trip_count_lag_1h_log": 0.3935,
-      "trip_count_lag_24h_log": 0.2666,
-      "trip_count_lag_168h_log": 0.1829,
+      "trip_count_lag_1h_log": 0.3923,
+      "trip_count_lag_24h_log": 0.2642,
+      "trip_count_lag_168h_log": 0.1843,
       "pickup_service_zone=Yellow Zone": 0.0371,
-      "pickup_borough=Manhattan": 0.0275,
-      "pickup_service_zone=Boro Zone": 0.0243,
+      "pickup_borough=Manhattan": 0.0274,
+      "pickup_service_zone=Boro Zone": 0.0244,
       "pickup_service_zone=Airports": 0.0096,
-      "pulocationid=161": 0.0085,
-      "pulocationid=236": 0.0068,
-      "pulocationid=237": 0.0046,
+      "pulocationid=161": 0.0089,
+      "pulocationid=236": 0.0077,
+      "pulocationid=237": 0.0063,
       "pulocationid=132": 0.0046,
-      "pulocationid=79": 0.0021
+      "is_weekend": 0.0022
     },
     "validation": {
-      "r2": 0.9304,
-      "rmse": 15.5588,
-      "mae": 4.5819
+      "r2": 0.9316,
+      "rmse": 15.6993,
+      "mae": 4.6277
     }
   },
   "layout": [
