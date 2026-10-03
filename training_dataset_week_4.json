@@ -1,24 +1,25 @@
 {
-  "generated_at": "2026-09-29T16:41:21",
-  "build_seconds": 27.04,
+  "generated_at": "2026-10-03T16:28:30",
+  "build_seconds": 25.32,
   "dataset": {
     "name": "hourly_zone_demand",
     "path": "output_data/ml/hourly_zone_demand",
-    "delta_version": 4,
+    "delta_version": 19,
     "rows": 486809
   },
   "sources": {
     "integrated_taxi_trips": {
       "path": "output_data/integrated_taxi_trips",
-      "version": 1
+      "version": 0
     },
     "taxi_zones": {
       "path": "output_data/taxi_zones",
-      "version": 0
+      "version": 7
     },
     "quarantine/trip_data": {
       "path": "output_data/quarantine/trip_data",
-      "version": 1
+      "version": 0,
+      "note": "no commit from 2026-09-18 20:39:32.030000 or earlier, when integrated_taxi_trips v0 was written; read at v0, its oldest"
     }
   },
   "window": {
@@ -29,10 +30,10 @@
     "hours_with_trips": 2183
   },
   "demand": {
-    "validated_trips": 8480394,
+    "validated_trips": 8480520,
     "quarantined_pickups_counted": 731797,
-    "pickups": 9212191,
-    "pickups_in_selected_zones": 9180034,
+    "pickups": 9212317,
+    "pickups_in_selected_zones": 9180159,
     "coverage": 0.99651,
     "zones_with_pickups": 261,
     "zones_selected": 223
@@ -47,11 +48,11 @@
       "hours": 1512,
       "first_hour": "2024-01-01 00:00:00",
       "last_hour": "2024-03-03 23:00:00",
-      "trips": 6071798,
+      "trips": 6071872,
       "target_mean": 18.008,
       "target_stddev": 52.184,
       "target_max": 791,
-      "target_zero_share": 0.5543,
+      "target_zero_share": 0.5542,
       "null_share": {
         "prcp": 0.0794,
         "trip_count_lag_1h": 0.0007,
@@ -68,7 +69,7 @@
       "hours": 335,
       "first_hour": "2024-03-04 00:00:00",
       "last_hour": "2024-03-17 23:00:00",
-      "trips": 1574328,
+      "trips": 1574342,
       "target_mean": 21.074,
       "target_stddev": 58.979,
       "target_max": 702,
@@ -89,9 +90,9 @@
       "hours": 336,
       "first_hour": "2024-03-18 00:00:00",
       "last_hour": "2024-03-31 23:00:00",
-      "trips": 1533908,
+      "trips": 1533945,
       "target_mean": 20.472,
-      "target_stddev": 56.942,
+      "target_stddev": 56.943,
       "target_max": 711,
       "target_zero_share": 0.4839,
       "null_share": {

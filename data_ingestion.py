@@ -1,6 +1,25 @@
 import json
 import re
 import time
+import resource
+
+
+def memory_limit_half():
+    """Limit max memory usage to half."""
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    # Convert KiB to bytes, and divide in two to half
+    resource.setrlimit(resource.RLIMIT_AS, (int(get_memory() * 1024 / 2), hard))
+
+def get_memory():
+    with open('/proc/meminfo', 'r') as mem:
+        free_memory = 0
+        for i in mem:
+            sline = i.split()
+            if str(sline[0]) in ('MemFree:', 'Buffers:', 'Cached:'):
+                free_memory += int(sline[1])
+    return free_memory  # KiB
+
+
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import concat_ws, col, lpad, lit, to_timestamp, md5, year, month, date_trunc, avg
@@ -330,7 +349,7 @@ def build_spark() -> SparkSession:
     # turn down the local parallelism in order to not consume all RAM
     builder = SparkSession.builder.appName('Generic_Ingestion_Framework') \
         .master("local[4]") \
-        .config("spark.driver.memory", "4g") \
+        .config("spark.driver.memory", "2g") \
         .config("spark.sql.shuffle.partitions", "64") \
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
@@ -339,6 +358,7 @@ def build_spark() -> SparkSession:
     return spark
 
 def main():
+    # memory_limit_half()
 
     spark = build_spark()
     monitoring.start_run("initial_load")
